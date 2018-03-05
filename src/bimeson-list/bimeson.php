@@ -6,12 +6,12 @@ namespace st;
  * Functions and Definitions for Bimeson
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-02-23
+ * @version 2018-03-06
  *
  */
 
 
-require_once __DIR__ . '/../system/field.php';
+require_once __DIR__ . '/../../stinc/system/field.php';
 
 require_once __DIR__ . '/bm-admin.php';
 require_once __DIR__ . '/bm-taxonomy.php';
