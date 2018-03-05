@@ -1,0 +1,77 @@
+@media (min-width: 900px) {
+	.bimeson-pub-filter {
+		column-count: 2;
+	}
+}
+
+.pub-list-filter-key {
+	padding: 4px 0;
+}
+
+.pub-list-filter-key-inner {
+	display: inline-flex;
+	width: 100%;
+	align-items: flex-start;
+	padding: 4px 0;
+}
+
+.pub-list-filter-cbs {
+}
+.pub-list-filter-cbs label {
+	padding: 8px;
+	display: inline-block;
+}
+input[type=checkbox].tgl {
+	display: none;
+}
+
+.tgl + .tgl-btn {
+	box-sizing: content-box;
+
+	margin-right: 4px;
+	display: block;
+	outline: 0;
+
+	width: 4em;
+	min-width: 4em;
+	height: 2em;
+
+	position: relative;
+	cursor: pointer;
+	user-select: none;
+	top: 2px;
+
+	padding: 2px;
+	background: #fff;
+	border-radius: 2em;
+	transition: all .4s ease;
+
+	border: 1px solid #ddd;
+	box-shadow: inset 0 1px 2px rgba(0,0,0,.07);
+}
+
+.tgl + .tgl-btn:after {
+	display: block;
+	content: "";
+	width: 50%;
+	height: 100%;
+
+	position: relative;
+	left: 0;
+
+	border-radius: 50%;
+	transition: all .2s ease;
+
+	border: 1px solid #ccc;
+	background: #f7f7f7;
+	box-shadow: 0 1px 0 #ccc;
+	box-sizing: border-box;
+}
+
+.tgl:checked + .tgl-btn::after {
+	left: 50%;
+}
+
+.tgl-light:checked + .tgl-btn {
+	background: #fa0;
+}
