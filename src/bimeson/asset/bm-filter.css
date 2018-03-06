@@ -38,7 +38,7 @@ input[type=checkbox].tgl {
 .tgl + .tgl-btn {
 	box-sizing: content-box;
 
-	margin-right: 4px;
+	margin-right: 12px;
 	display: block;
 	outline: 0;
 
