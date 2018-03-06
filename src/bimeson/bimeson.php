@@ -35,20 +35,19 @@ class Bimeson {
 	}
 
 	private $_additional_langs;
-	private $_tax = null;
+	private $_tax   = null;
 	private $_admin = null;
 
 	private function __construct() {}
 
 	public function initialize( $additional_langs = [], $taxonomy = false, $sub_tax_base = false ) {
 		$this->_additional_langs = $additional_langs;
-		$this->_tax = new Bimeson_Taxonomy( [ 'taxonomy' => '分類', 'last_key_omitted' => '一番最後のキーを省略', 'last_key_hidden' => '閲覧画面から隠す' ], $taxonomy, $sub_tax_base );
+		$this->_tax = new Bimeson_Taxonomy( [ 'taxonomy' => '分類' ], $taxonomy, $sub_tax_base );
+
 		$this->_register_post_type();
 		$this->_add_shortcodes();
 
-		if ( is_admin() ) {
-			$this->_admin = new Bimeson_Admin( $this->_additional_langs, $this->_tax );
-		}
+		if ( is_admin() ) $this->_admin = new Bimeson_Admin( $this->_additional_langs, $this->_tax );
 	}
 
 	private function _register_post_type() {

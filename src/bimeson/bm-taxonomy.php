@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Taxonomy)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-02-23
+ * @version 2018-03-06
  *
  */
 
@@ -15,9 +15,6 @@ class Bimeson_Taxonomy {
 
 	const DEFAULT_TAXONOMY     = 'bm_cat';
 	const DEFAULT_SUB_TAX_BASE = 'bm_cat_';
-
-	const KEY_LAST_KEY_OMITTED = '_last_key_omitted';
-	const KEY_LAST_KEY_HIDDEN  = '_last_key_hidden';
 
 	private $_label;
 	private $_tax_root;
@@ -28,7 +25,6 @@ class Bimeson_Taxonomy {
 
 	public function __construct( $labels, $taxonomy = false, $sub_tax_base = false ) {
 		$this->_label        = $labels['taxonomy'];
-		$this->_labels       = $labels;
 		$this->_tax_root     = ( $taxonomy === false ) ? self::DEFAULT_TAXONOMY : $taxonomy;
 		$this->_tax_sub_base = ( $sub_tax_base === false ) ? self::DEFAULT_SUB_TAX_BASE : $sub_tax_base;
 
@@ -53,7 +49,6 @@ class Bimeson_Taxonomy {
 		}
 		\st\ordered_term\make_terms_ordered( $sub_taxes );
 
-		add_action( "{$this->_tax_root}_edit_form_fields", [ $this, '_cb_taxonomy_edit_form_fields' ], 10, 2 );
 		add_action( "edit_terms",                          [ $this, '_cb_edit_taxonomy' ], 10, 2 );
 		add_action( "edited_{$this->_tax_root}",           [ $this, '_cb_edited_taxonomy' ], 10, 2 );
 		add_filter( 'query_vars',                          [ $this, '_cb_query_vars' ] );
@@ -140,13 +135,6 @@ class Bimeson_Taxonomy {
 
 	// Callback Functions ------------------------------------------------------
 
-	public function _cb_taxonomy_edit_form_fields( $term, $taxonomy ) {
-		self::_boolean_form( $term, self::KEY_LAST_KEY_OMITTED, $this->labels['last_key_omitted'] );
-		if ( $term->parent === '0' ) {
-			self::_boolean_form( $term, self::KEY_LAST_KEY_HIDDEN, $this->labels['last_key_hidden'] );
-		}
-	}
-
 	static private function _boolean_form( $term, $key, $label ) {
 		$val = get_term_meta( $term->term_id, $key, true );
 		?>
@@ -178,9 +166,6 @@ class Bimeson_Taxonomy {
 	}
 
 	public function _cb_edited_taxonomy( $term_id, $tt_id ) {
-		self::_is_not_empty( $term_id, self::KEY_LAST_KEY_OMITTED );
-		self::_is_not_empty( $term_id, self::KEY_LAST_KEY_HIDDEN );
-
 		$term = get_term_by( 'id', $term_id, $this->_tax_root );
 		$new_taxonomy = $this->term_to_taxonomy( $term );
 
@@ -190,14 +175,6 @@ class Bimeson_Taxonomy {
 				wp_delete_term( $t['term_id'], $this->_old_taxonomy );
 				wp_insert_term( $t['name'], $new_taxonomy, [ 'slug' => $t['slug'] ] );
 			}
-		}
-	}
-
-	static private function _is_not_empty( $term_id, $key ) {
-		if ( empty( $_POST[ $key ] ) ) {
-			delete_term_meta( $term_id, $key );
-		} else {
-			update_term_meta( $term_id, $key, 1 );
 		}
 	}
 
