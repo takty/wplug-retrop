@@ -18,9 +18,6 @@ require_once __DIR__ . '/bm-importer.php';
 
 class Bimeson {
 
-	const KEY_OMIT_FIRST = '_bimeson_pub_first_key_omitted';
-	const KEY_ITEMS      = '_bimeson_pub_items';
-
 	const FLD_BODY        = '_body';
 	const FLD_DATE        = '_date';
 	const FLD_DOI         = '_doi';
@@ -215,7 +212,6 @@ class Bimeson {
 					'type'    => 'NUMERIC',
 				];
 			}
-			// var_dump( $mq );
 			$ps = get_posts( [
 				'post_type' => 'bimeson',
 				'posts_per_page' => intval( $atts['count'] ),
