@@ -3,7 +3,7 @@ namespace st;
 
 /**
  *
- * Functions and Definitions for Bimeson
+ * Bimeson (Admin)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
  * @version 2018-03-06
