@@ -52,15 +52,15 @@ class Bimeson {
 
 	private function _register_post_type() {
 		register_post_type( 'bimeson', [
-			'label'               => '業績',
-			'labels'              => [],
-			'public'              => true,
-			'show_ui'             => true,
-			'menu_position'       => 5,
-			'menu_icon'           => 'dashicons-analytics',
-			'has_archive'         => false,
-			'rewrite'             => false,
-			'supports'            => [ 'title', 'editor' ],
+			'label'         => '業績',
+			'labels'        => [],
+			'public'        => true,
+			'show_ui'       => true,
+			'menu_position' => 5,
+			'menu_icon'     => 'dashicons-analytics',
+			'has_archive'   => false,
+			'rewrite'       => false,
+			'supports'      => [ 'title', 'editor' ],
 		] );
 	}
 
