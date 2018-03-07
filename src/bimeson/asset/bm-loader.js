@@ -3,7 +3,7 @@
  * Bimeson File Loader
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-02-01
+ * @version 2018-03-07
  *
  */
 
@@ -86,7 +86,7 @@ BIMESON['loadFiles'] = (function () {
 		for (var x = x0; x < x1; x += 1) {
 			var cell = sheet[XLSX.utils.encode_cell({c: x, r: y0})];
 			if (!cell || cell.w === '') break;
-			var key = (cell.w + '').toLowerCase();
+			var key = normalizeKey(cell.w + '');
 			colCount += 1;
 			colToKey[x] = key;
 		}
@@ -111,13 +111,22 @@ BIMESON['loadFiles'] = (function () {
 				} else {
 					if (cell && cell.w && cell.w.length > 0) {
 						var vals = cell.w.split(/\s*,\s*/);
-						item[key] = vals.slice(0);  // make a clone
-						item[key] = item[key].map(function (x) {return x.trim();});
+						item[key] = vals.map(function (x) {return normalizeKey(x);});
 					}
 				}
 			}
 			retItems.push(item);
 		}
+	}
+
+	function normalizeKey(str) {
+		str = str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function (s) {return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);});
+		str = str.replace(/[_＿]/g, '_');
+		str = str.replace(/[\-‐―ー]/g, '-');
+		str = str.replace(/[^A-Za-z0-9\-\_]/g, '');
+		str = str.toLowerCase();
+		str = str.trim();
+		return str;
 	}
 
 	return loadFiles;
