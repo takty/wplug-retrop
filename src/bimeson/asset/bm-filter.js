@@ -3,7 +3,7 @@
  * Publication List Filter (JS)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-02-12
+ * @version 2018-03-07
  *
  */
 
@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	function update() {
 		var keyToVals = getKeyToVals(keyToSwAndCbs);
 		filterLists(allElms, keyToVals);
-		// countUpItems(allElms);
 		setUrlParams(keyToSwAndCbs);
 	}
 
@@ -121,7 +120,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			for (var i = 0, I = lis.length; i < I; i += 1) {
 				var li = lis[i];
 				var show = isMatch(li, fkeyToVals);
-				// li.style.display = show ? '' : 'none';
 				li.classList.remove('bm-filtered');
 				if (!show) li.classList.add('bm-filtered');
 				if (show) showCount += 1;
@@ -146,44 +144,6 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (!contains) return false;
 		}
 		return true;
-	}
-
-
-	// -------------------------------------------------------------------------
-
-	function countUpItems(elms) {
-		// var headingToDepthCount = {};
-		// for (var i = 0, I = elms.length; i < I; i += 1) {
-		// 	var elm = elms[i];
-		// 	if (elm.dataset['depth']) elm.dataset['count'] = 0;  // 'elm' is heading
-		// }
-		// var headers = [];
-		// for (var i = 0, I = elms.length; i < I; i += 1) {
-		// 	var elm = elms[i];
-
-			// if (elm.dataset['depth']) {  // 'elm' is heading
-			// 	var hi = parseInt(elm.dataset.depth);
-			// 	while (headers.length > 0) {
-			// 		var l = headers[headers.length - 1];
-			// 		if (hi > parseInt(l.dataset.depth)) break;
-			// 		headers.length -= 1;
-			// 	}
-			// 	headers.push(elm);
-			// } else {  // 'elm' is list
-			// 	var itemCount = parseInt(elm.dataset['count']);
-			// 	for (var j = 0; j < headers.length; j += 1) {
-			// 		var h = headers[j];
-			// 		h.dataset['count'] = parseInt(h.dataset['count']) + itemCount;
-			// 	}
-			// }
-		// }
-		// for (var i = 0, I = elms.length; i < I; i += 1) {
-		// 	var elm = elms[i];
-		// 	if (elm.dataset['depth']) {  // 'elm' is heading
-		// 		var itemCount = parseInt(elm.dataset['count']);
-		// 		elm.style.display = itemCount > 0 ? '' : 'none';
-		// 	}
-		// }
 	}
 
 });

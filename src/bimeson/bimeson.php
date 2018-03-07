@@ -217,33 +217,20 @@ class Bimeson {
 	}
 
 	private function _echo_list_item( $p, $al ) {
-		$cs = [];
-		$rss = $this->_tax->get_root_slugs();
-		foreach ( $rss as $rs ) {
-			$sub_tax = $this->_tax->term_to_taxonomy( $rs );
-			$ts = get_the_terms( $p->ID, $sub_tax );
-			if ( $ts === false ) continue;
-			foreach ( $ts as $t ) {
-				$cs[] = str_replace( '_', '-', Bimeson_Taxonomy::DEFAULT_SUB_TAX_BASE . "$rs-{$t->slug}" );
-			}
-		}
-		$cls = esc_attr( implode( ' ', $cs ) );
-
 		$body = '';
 		if ( ! empty( $al ) ) $body = \st\get_the_sub_content( "_post_content_$al", $p->ID );
 		if ( empty( $body ) ) $body = $p->post_content;
 
-		$doi = get_post_meta( $p->ID, self::FLD_DOI, true) ;
-		$lurl = get_post_meta( $p->ID, self::FLD_LINK_URL, true) ;
-		$ltitle = get_post_meta( $p->ID, self::FLD_LINK_TITLE, true) ;
+		$doi    = get_post_meta( $p->ID, self::FLD_DOI,        true);
+		$lurl   = get_post_meta( $p->ID, self::FLD_LINK_URL,   true);
+		$ltitle = get_post_meta( $p->ID, self::FLD_LINK_TITLE, true);
 
 		$_link = '';
 		if ( ! empty( $lurl ) ) {
 			$_url   = esc_url( $lurl );
-			$_title = ( ! empty( $ltitle ) ) ? esc_html( $ltitle ) : $_url;
+			$_title = empty( $ltitle ) ? $_url : esc_html( $ltitle );
 			$_link  = "<span class=\"link\"><a href=\"$_url\">$_title</a></span>";
 		}
-
 		$_doi = '';
 		if ( ! empty( $doi ) ) {
 			$_url   = esc_url( "https://doi.org/$doi" );
@@ -251,15 +238,35 @@ class Bimeson {
 			$_doi   = "<span class=\"doi\">DOI: <a href=\"$_url\">$_title</a></span>";
 		}
 
-		$_edit_link = '';
-		if ( is_user_logged_in() && current_user_can( 'edit_post', $p->ID ) ) {
-			$_edit_url = admin_url( "post.php?post={$p->ID}&action=edit" );
-			$_edit_link = " <a href=\"$_edit_url\">EDIT</a>";
-		}
+		$_cls = esc_attr( implode( ' ', $this->_make_cls_array( $p ) ) );
+		$_edit_tag = $this->_make_edit_tag( $p );
 
-		echo "<li class=\"$cls\"><div>";
+		echo "<li class=\"$_cls\"><div>";
 		\st\echo_content( $body );
-		echo "$_link$_doi$_edit_link</div></li>\n";
+		echo "$_link$_doi $_edit_tag</div></li>\n";
+	}
+
+	private function _make_cls_array( $p ) {
+		$cs = [];
+		$rss = $this->_tax->get_root_slugs();
+		foreach ( $rss as $rs ) {
+			$sub_tax = $this->_tax->term_to_taxonomy( $rs );
+			$ts = get_the_terms( $p->ID, $sub_tax );
+			if ( $ts === false ) continue;
+			foreach ( $ts as $t ) {
+				$cs[] = str_replace( '_', '-', "{$sub_tax}-{$t->slug}" );
+			}
+		}
+		return $cs;
+	}
+
+	private function _make_edit_tag( $p ) {
+		$_tag = '';
+		if ( is_user_logged_in() && current_user_can( 'edit_post', $p->ID ) ) {
+			$_url = admin_url( "post.php?post={$p->ID}&action=edit" );
+			$_tag = "<a href=\"$_url\">EDIT</a>";
+		}
+		return $_tag;
 	}
 
 }
