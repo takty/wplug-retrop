@@ -6,7 +6,7 @@ namespace st;
  * Functions and Definitions for Bimeson
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-06
+ * @version 2018-03-07
  *
  */
 
@@ -17,6 +17,8 @@ require_once __DIR__ . '/bm-admin.php';
 
 
 class Bimeson {
+
+	const PT_BIMESON      = 'bimeson';
 
 	const FLD_BODY        = '_body';
 	const FLD_DATE        = '_date';
@@ -42,7 +44,7 @@ class Bimeson {
 
 	public function initialize( $additional_langs = [], $taxonomy = false, $sub_tax_base = false ) {
 		$this->_additional_langs = $additional_langs;
-		$this->_tax = new Bimeson_Taxonomy( [ 'taxonomy' => '分類' ], $taxonomy, $sub_tax_base );
+		$this->_tax = new Bimeson_Taxonomy( PT_BIMESON, [ 'taxonomy' => '分類' ], $taxonomy, $sub_tax_base );
 
 		$this->_register_post_type();
 		$this->_add_shortcodes();
@@ -51,7 +53,7 @@ class Bimeson {
 	}
 
 	private function _register_post_type() {
-		register_post_type( 'bimeson', [
+		register_post_type( PT_BIMESON, [
 			'label'         => '業績',
 			'labels'        => [],
 			'public'        => true,
@@ -146,7 +148,7 @@ class Bimeson {
 				];
 			}
 			$ps = get_posts( [
-				'post_type' => 'bimeson',
+				'post_type' => PT_BIMESON,
 				'posts_per_page' => intval( $atts['count'] ),
 				'tax_query' => $tq,
 				'meta_query' => $mq,

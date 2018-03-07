@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Taxonomy)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-06
+ * @version 2018-03-07
  *
  */
 
@@ -19,16 +19,18 @@ class Bimeson_Taxonomy {
 	private $_label;
 	private $_tax_root;
 	private $_tax_sub_base;
+	private $_post_type;
 
 	private $_old_taxonomy = [];
 	private $_old_terms = [];
 
-	public function __construct( $labels, $taxonomy = false, $sub_tax_base = false ) {
+	public function __construct( $post_type, $labels, $taxonomy = false, $sub_tax_base = false ) {
 		$this->_label        = $labels['taxonomy'];
 		$this->_tax_root     = ( $taxonomy === false ) ? self::DEFAULT_TAXONOMY : $taxonomy;
 		$this->_tax_sub_base = ( $sub_tax_base === false ) ? self::DEFAULT_SUB_TAX_BASE : $sub_tax_base;
+		$this->_post_type    = $post_type;
 
-		register_taxonomy( $this->_tax_root, 'bimeson', [
+		register_taxonomy( $this->_tax_root, $this->_post_type, [
 			'hierarchical'       => false,
 			'label'              => $this->_label,
 			'public'             => false,
@@ -37,7 +39,7 @@ class Bimeson_Taxonomy {
 			'meta_box_cb'        => false,
 			'rewrite'            => false,
 		] );
-		register_taxonomy_for_object_type( $this->_tax_root, 'bimeson' );
+		register_taxonomy_for_object_type( $this->_tax_root, $this->_post_type );
 		\st\ordered_term\make_terms_ordered( [ $this->_tax_root ] );
 
 		$terms = get_terms( $this->_tax_root, [ 'hide_empty' => 0 ]  );
@@ -191,11 +193,8 @@ class Bimeson_Taxonomy {
 		return "{$this->_tax_sub_base}{$slug}";
 	}
 
-
-	// Private Functions -------------------------------------------------------
-
 	public function register_sub_tax( $tax, $name ) {
-		register_taxonomy( $tax, 'bimeson', [
+		register_taxonomy( $tax, $this->_post_type, [
 			'hierarchical'      => true,
 			'label'             => "{$this->_label} ($name)",
 			'public'            => true,
