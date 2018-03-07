@@ -16,23 +16,23 @@ class Bimeson_Taxonomy {
 	const DEFAULT_TAXONOMY     = 'bm_cat';
 	const DEFAULT_SUB_TAX_BASE = 'bm_cat_';
 
-	private $_label;
+	private $_post_type;
+	private $_labels;
 	private $_tax_root;
 	private $_tax_sub_base;
-	private $_post_type;
 
 	private $_old_taxonomy = [];
 	private $_old_terms = [];
 
 	public function __construct( $post_type, $labels, $taxonomy = false, $sub_tax_base = false ) {
-		$this->_label        = $labels['taxonomy'];
-		$this->_tax_root     = ( $taxonomy === false ) ? self::DEFAULT_TAXONOMY : $taxonomy;
-		$this->_tax_sub_base = ( $sub_tax_base === false ) ? self::DEFAULT_SUB_TAX_BASE : $sub_tax_base;
 		$this->_post_type    = $post_type;
+		$this->_labels       = $labels;
+		$this->_tax_root     = ( $taxonomy === false )     ? self::DEFAULT_TAXONOMY     : $taxonomy;
+		$this->_tax_sub_base = ( $sub_tax_base === false ) ? self::DEFAULT_SUB_TAX_BASE : $sub_tax_base;
 
 		register_taxonomy( $this->_tax_root, $this->_post_type, [
 			'hierarchical'       => false,
-			'label'              => $this->_label,
+			'label'              => $this->_labels['taxonomy'],
 			'public'             => false,
 			'show_ui'            => true,
 			'show_in_quick_edit' => false,
@@ -41,19 +41,43 @@ class Bimeson_Taxonomy {
 		] );
 		register_taxonomy_for_object_type( $this->_tax_root, $this->_post_type );
 		\st\ordered_term\make_terms_ordered( [ $this->_tax_root ] );
+		$this->_register_sub_tax_all();
 
-		$terms = get_terms( $this->_tax_root, [ 'hide_empty' => 0 ]  );
+		add_action( "edit_terms",                [ $this, '_cb_edit_taxonomy' ], 10, 2 );
+		add_action( "edited_{$this->_tax_root}", [ $this, '_cb_edited_taxonomy' ], 10, 2 );
+		add_filter( 'query_vars',                [ $this, '_cb_query_vars' ] );
+	}
+
+	private function _register_sub_tax_all() {
+		$roots = get_terms( $this->_tax_root, [ 'hide_empty' => 0 ]  );
 		$sub_taxes = [];
-		foreach ( $terms as $t ) {
-			$sub_tax = $this->term_to_taxonomy( $t );
+		foreach ( $roots as $r ) {
+			$sub_tax = $this->term_to_taxonomy( $r );
 			$sub_taxes[] = $sub_tax;
-			$this->register_sub_tax( $sub_tax, $t->name );
+			$this->register_sub_tax( $sub_tax, $r->name );
 		}
 		\st\ordered_term\make_terms_ordered( $sub_taxes );
+	}
 
-		add_action( "edit_terms",                          [ $this, '_cb_edit_taxonomy' ], 10, 2 );
-		add_action( "edited_{$this->_tax_root}",           [ $this, '_cb_edited_taxonomy' ], 10, 2 );
-		add_filter( 'query_vars',                          [ $this, '_cb_query_vars' ] );
+	private function _get_query_var_name( $slug ) {
+		$slug = str_replace( '-', '_', $slug );
+		return "{$this->_tax_sub_base}{$slug}";
+	}
+
+	public function register_sub_tax( $tax, $name ) {
+		register_taxonomy( $tax, $this->_post_type, [
+			'hierarchical'      => true,
+			'label'             => "{$this->_labels['taxonomy']} ($name)",
+			'public'            => true,
+			'show_ui'           => true,
+			'rewrite'           => false,
+			'sort'              => true,
+			'show_admin_column' => true
+		] );
+	}
+
+	public function get_taxonomy() {
+		return $this->_tax_root;
 	}
 
 	public function term_to_taxonomy( $term ) {
@@ -67,25 +91,15 @@ class Bimeson_Taxonomy {
 		return $this->_tax_sub_base . $slug;
 	}
 
-	public function get_taxonomy() {
-		return $this->_tax_root;
-	}
-
 	public function get_root_slugs() {
-		$terms = get_terms( $this->_tax_root, [ 'hide_empty' => 0 ]  );
-		$slugs = [];
-		foreach( $terms as $t ) {
-			$slugs[] = $t->slug;
-		}
-		return $slugs;
+		$roots = get_terms( $this->_tax_root, [ 'hide_empty' => 0 ]  );
+		return array_map( function ( $e ) { return $e->slug; }, $roots );
 	}
 
 	public function get_sub_taxonomies() {
-		$terms = $this->get_root_slugs();
+		$rss = $this->get_root_slugs();
 		$slugs = [];
-		foreach( $terms as $t ) {
-			$slugs[] = $this->term_to_taxonomy( $t );
-		}
+		foreach( $rss as $rs ) $slugs[] = $this->term_to_taxonomy( $rs );
 		return $slugs;
 	}
 
@@ -93,15 +107,23 @@ class Bimeson_Taxonomy {
 		$roots = get_terms( $this->_tax_root, [ 'hide_empty' => 0 ]  );
 		$slugs = [];
 		foreach( $roots as $r ) {
-			$sub_tax = $this->term_to_taxonomy( $r );
-			$terms = get_terms( $sub_tax, [ 'hide_empty' => 0 ]  );
-			$slugs[ $r->slug ] = array_map( function ( $t ) { return $t->slug; }, $terms );;
+			$terms = get_terms( $this->term_to_taxonomy( $r ), [ 'hide_empty' => 0 ]  );
+			$slugs[ $r->slug ] = array_map( function ( $e ) { return $e->slug; }, $terms );;
 		}
 		return $slugs;
 	}
 
+	public function get_root_slugs_to_sub_terms() {
+		$roots = get_terms( $this->_tax_root, [ 'hide_empty' => 0 ]  );
+		$terms = [];
+		foreach( $roots as $r ) {
+			$terms[ $r->slug ] = get_terms( $this->term_to_taxonomy( $r ), [ 'hide_empty' => 0 ]  );
+		}
+		return $terms;
+	}
+
 	public function show_tax_checkboxes( $terms, $slug ) {
-		$v = get_query_var( $this->get_query_var_name( $slug ) );
+		$v = get_query_var( $this->_get_query_var_name( $slug ) );
 		$_slug = esc_attr( $slug );
 		$qvals = empty( $v ) ? [] : explode( ',', $v );
 	?>
@@ -112,11 +134,10 @@ class Bimeson_Taxonomy {
 				<div class="bm-list-filter-cbs">
 	<?php
 		foreach ( $terms as $t ) :
-			$_id   = esc_attr( str_replace( '_', '-', "{$this->_tax_sub_base}{$t->slug}" ) );
-			$_val  = esc_attr( $t->slug );
+			$_id  = esc_attr( str_replace( '_', '-', "{$this->_tax_sub_base}{$t->slug}" ) );
+			$_val = esc_attr( $t->slug );
 			if ( class_exists( '\st\Multilang' ) ) {
-				$ml = \st\Multilang::get_instance();
-				$_name = esc_html( $ml->get_term_name( $t ) );
+				$_name = esc_html( \st\Multilang::get_instance()->get_term_name( $t ) );
 			} else {
 				$_name = esc_html( $t->name );
 			}
@@ -136,18 +157,6 @@ class Bimeson_Taxonomy {
 
 
 	// Callback Functions ------------------------------------------------------
-
-	static private function _boolean_form( $term, $key, $label ) {
-		$val = get_term_meta( $term->term_id, $key, true );
-		?>
-		<tr class="form-field">
-			<th style="padding-top: 20px; padding-bottom: 20px;"><label for="<?php echo $key ?>"><?php echo esc_html( $label ) ?></label></th>
-			<td style="padding-top: 20px; padding-bottom: 20px;">
-				<input type="checkbox" name="<?php echo $key ?>" id="<?php echo $key ?>" <?php checked( $val, 1 ) ?>/>
-			</td>
-		</tr>
-		<?php
-	}
 
 	public function _cb_edit_taxonomy( $term_id, $taxonomy ) {
 		if ( $taxonomy !== $this->_tax_root ) return;
@@ -181,28 +190,23 @@ class Bimeson_Taxonomy {
 	}
 
 	public function _cb_query_vars( $query_vars ) {
-		$top_keys = get_terms( $this->_tax_root, [ 'hide_empty' => 0, 'parent' => '0' ] );
-		foreach ( $top_keys as $t ) {
-			$query_vars[] = $this->get_query_var_name( $t->slug );
+		$roots = get_terms( $this->_tax_root, [ 'hide_empty' => 0 ] );
+		foreach ( $roots as $r ) {
+			$query_vars[] = $this->_get_query_var_name( $r->slug );
 		}
 		return $query_vars;
 	}
 
-	public function get_query_var_name( $slug ) {
-		$slug = str_replace( '-', '_', $slug );
-		return "{$this->_tax_sub_base}{$slug}";
-	}
-
-	public function register_sub_tax( $tax, $name ) {
-		register_taxonomy( $tax, $this->_post_type, [
-			'hierarchical'      => true,
-			'label'             => "{$this->_label} ($name)",
-			'public'            => true,
-			'show_ui'           => true,
-			'rewrite'           => false,
-			'sort'              => true,
-			'show_admin_column' => true
-		] );
+	static private function _boolean_form( $term, $key, $label ) {
+		$val = get_term_meta( $term->term_id, $key, true );
+		?>
+		<tr class="form-field">
+			<th style="padding-top: 20px; padding-bottom: 20px;"><label for="<?php echo $key ?>"><?php echo esc_html( $label ) ?></label></th>
+			<td style="padding-top: 20px; padding-bottom: 20px;">
+				<input type="checkbox" name="<?php echo $key ?>" id="<?php echo $key ?>" <?php checked( $val, 1 ) ?>/>
+			</td>
+		</tr>
+		<?php
 	}
 
 }

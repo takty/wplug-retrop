@@ -44,7 +44,7 @@ class Bimeson {
 
 	public function initialize( $additional_langs = [], $taxonomy = false, $sub_tax_base = false ) {
 		$this->_additional_langs = $additional_langs;
-		$this->_tax = new Bimeson_Taxonomy( PT_BIMESON, [ 'taxonomy' => '分類' ], $taxonomy, $sub_tax_base );
+		$this->_tax = new Bimeson_Taxonomy( self::PT_BIMESON, [ 'taxonomy' => '分類' ], $taxonomy, $sub_tax_base );
 
 		$this->_register_post_type();
 		$this->_add_shortcodes();
@@ -53,7 +53,7 @@ class Bimeson {
 	}
 
 	private function _register_post_type() {
-		register_post_type( PT_BIMESON, [
+		register_post_type( self::PT_BIMESON, [
 			'label'         => '業績',
 			'labels'        => [],
 			'public'        => true,
@@ -148,7 +148,7 @@ class Bimeson {
 				];
 			}
 			$ps = get_posts( [
-				'post_type' => PT_BIMESON,
+				'post_type' => self::PT_BIMESON,
 				'posts_per_page' => intval( $atts['count'] ),
 				'tax_query' => $tq,
 				'meta_query' => $mq,
@@ -189,23 +189,18 @@ class Bimeson {
 	public function enqueue_script( $url_to = false ) {
 		if ( ! is_admin() ) {
 			if ( $url_to === false ) $url_to = \st\get_file_uri( __DIR__ );
+			$url_to = untrailingslashit( $url_to );
 			wp_enqueue_style(  'bimeson', $url_to . '/asset/bm-filter.min.css' );
 			wp_enqueue_script( 'bimeson', $url_to . '/asset/bm-filter.min.js' );
 		}
 	}
 
 	public function the_filter( $slugs ) {
-		$slug_to_terms = [];
-		$rss = $this->_tax->get_root_slugs();
-		foreach ( $rss as $rs ) {
-			if ( $slugs[0] === 'all' || in_array( $rs, $slugs, true ) ) {
-				$sub_tax = $this->_tax->term_to_taxonomy( $rs );
-				$terms = get_terms( $sub_tax, [ 'hide_empty' => 0 ] );
-				$slug_to_terms[ $rs ] = $terms;
-			}
-		}
+		$slug_to_terms = $this->_tax->get_root_slugs_to_sub_terms();
 		foreach ( $slug_to_terms as $slug => $terms ) {
-			$this->_tax->show_tax_checkboxes( $terms, $slug );
+			if ( $slugs[0] === 'all' || in_array( $slug, $slugs, true ) ) {
+				$this->_tax->show_tax_checkboxes( $terms, $slug );
+			}
 		}
 	}
 
