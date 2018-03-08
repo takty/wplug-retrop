@@ -3,7 +3,7 @@
  * Bimeson File Loader
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-07
+ * @version 2018-03-08
  *
  */
 
@@ -86,9 +86,8 @@ BIMESON['loadFiles'] = (function () {
 		for (var x = x0; x < x1; x += 1) {
 			var cell = sheet[XLSX.utils.encode_cell({c: x, r: y0})];
 			if (!cell || cell.w === '') break;
-			var key = normalizeKey(cell.w + '');
 			colCount += 1;
-			colToKey[x] = key;
+			colToKey[x] = normalizeKey(cell.w + '', true);
 		}
 		x1 = x0 + colCount;
 
@@ -111,7 +110,7 @@ BIMESON['loadFiles'] = (function () {
 				} else {
 					if (cell && cell.w && cell.w.length > 0) {
 						var vals = cell.w.split(/\s*,\s*/);
-						item[key] = vals.map(function (x) {return normalizeKey(x);});
+						item[key] = vals.map(function (x) {return normalizeKey(x, false);});
 					}
 				}
 			}
@@ -119,13 +118,18 @@ BIMESON['loadFiles'] = (function () {
 		}
 	}
 
-	function normalizeKey(str) {
+	function normalizeKey(str, isKey) {
 		str = str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function (s) {return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);});
 		str = str.replace(/[_＿]/g, '_');
 		str = str.replace(/[\-‐―ー]/g, '-');
 		str = str.replace(/[^A-Za-z0-9\-\_]/g, '');
 		str = str.toLowerCase();
 		str = str.trim();
+		if (0 < str.length) {
+			if (!isKey && (str[0] === '_' || str[0] === '-')) str = str.replace(/^[_\-]+/, '');
+			if (str[0] !== '_') str = str.replace('_', '-');
+			if (str[0] === '_') str = str.replace('-', '_');
+		}
 		return str;
 	}
 
