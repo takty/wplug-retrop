@@ -93,6 +93,7 @@ BIMESON['loadFiles'] = (function () {
 
 		for (var y = y0 + 1; y < y1; y += 1) {  // skip header
 			var item = {};
+			var count = 0;
 			for (var x = x0; x < x1; x += 1) {
 				var cell = sheet[XLSX.utils.encode_cell({c: x, r: y})];
 				var key = colToKey[x];
@@ -102,19 +103,22 @@ BIMESON['loadFiles'] = (function () {
 						text = text.replace(/<br\/>/g, '<br />');
 						text = text.replace(/&#x000d;&#x000a;/g, '<br />');
 						item[key] = text;
+						count += 1;
 					}
 				} else if (key[0] === '_') {
 					if (cell && cell.w && cell.w.length > 0) {
 						item[key] = cell.w;
+						count += 1;
 					}
 				} else {
 					if (cell && cell.w && cell.w.length > 0) {
 						var vals = cell.w.split(/\s*,\s*/);
 						item[key] = vals.map(function (x) {return normalizeKey(x, false);});
+						count += 1;
 					}
 				}
 			}
-			retItems.push(item);
+			if (0 < count) retItems.push(item);
 		}
 	}
 

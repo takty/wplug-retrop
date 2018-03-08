@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Admin)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-06
+ * @version 2018-03-08
  *
  */
 
@@ -23,9 +23,9 @@ class Bimeson_Admin {
 		$this->_additional_langs = $additional_langs;
 		$this->_tax = $bm_tax;
 
-		add_action( 'wp_loaded',         [ $this, '_cb_wp_loaded' ] );
-		add_action( 'admin_menu',        [ $this, '_cb_admin_menu' ] );
-		add_action( 'save_post_bimeson', [ $this, '_cb_save_post' ] );
+		add_action( 'wp_loaded',                        [ $this, '_cb_wp_loaded' ] );
+		add_action( 'admin_menu',                       [ $this, '_cb_admin_menu' ] );
+		add_action( 'save_post_' . Bimeson::PT_BIMESON, [ $this, '_cb_save_post' ] );
 		if ( class_exists( '\st\Bimeson_Importer' ) ) {
 			\st\Bimeson_Importer::register( $this->_tax, [ 'additional_langs' => $this->_additional_langs ] );
 		}
@@ -44,7 +44,7 @@ class Bimeson_Admin {
 	}
 
 	public function _cb_admin_menu() {
-		if ( \st\page_template_admin\is_post_type( 'bimeson' ) ) {
+		if ( \st\page_template_admin\is_post_type( Bimeson::PT_BIMESON ) ) {
 			foreach ( $this->_additional_langs as $al ) {
 				\st\field\add_rich_editor_meta_box( "_post_content_$al", "本文 [$al]", 'bimeson' );
 			}
