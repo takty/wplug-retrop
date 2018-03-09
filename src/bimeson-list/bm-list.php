@@ -23,7 +23,7 @@ class Bimeson_List {
 	const FLD_MEDIA     = '_bimeson_media';
 	const FLD_ADD_TAX   = '_bimeson_add_tax';
 	const FLD_ADD_TERM  = '_bimeson_add_term';
-	const FLD_OUT_ITEMS = '_bimeson_items';
+	const FLD_ITEMS     = '_bimeson_items';
 
 	const LBL_POST_TYPE = '業績リスト';
 	const LBL_ADD_TAX   = '分類自体を追加';
@@ -70,7 +70,7 @@ class Bimeson_List {
 				<label><input type="checkbox" name="<?php echo self::FLD_ADD_TERM ?>" value="true"><?php echo self::LBL_ADD_TERM ?></label>
 				<a href="javascript:void(0);" class="bimeson_list_filter_button button button-primary button-large"><?php echo self::LBL_UPDATE ?></a>
 			</div>
-			<input type="hidden" id="<?php echo self::FLD_OUT_ITEMS ?>" name="<?php echo self::FLD_OUT_ITEMS ?>" value="<?php echo esc_attr( self::NOT_MODIFIED ) ?>" />
+			<input type="hidden" id="<?php echo self::FLD_ITEMS ?>" name="<?php echo self::FLD_ITEMS ?>" value="<?php echo esc_attr( self::NOT_MODIFIED ) ?>" />
 		</div>
 <?php
 	}
@@ -80,13 +80,17 @@ class Bimeson_List {
 		if ( ! current_user_can( 'edit_post', $post_id ) ) return;
 		\st\media_picker\save_post( $post_id, self::FLD_MEDIA );
 
-		$json_items = $_POST[ self::FLD_OUT_ITEMS ];
+		$json_items = $_POST[ self::FLD_ITEMS ];
 		if ( $json_items !== self::NOT_MODIFIED ) {
-			update_post_meta( $post_id, self::FLD_OUT_ITEMS, $json_items );
+			$items = json_decode( stripslashes( $json_items ), true );
 
 			$add_tax  = $_POST[ self::FLD_ADD_TAX ]  === 'true';
 			$add_term = $_POST[ self::FLD_ADD_TERM ] === 'true';
-			if ( $add_tax || $add_term ) $this->_process_terms( json_decode( stripslashes( $json_items ), true ), $add_tax, $add_term );
+			if ( $add_tax || $add_term ) $this->_process_terms( $items, $add_tax, $add_term );
+
+			$this->_process_items( $items );
+			$json_items = json_encode( $items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+			update_post_meta( $post_id, self::FLD_ITEMS, $json_items );
 		}
 	}
 
@@ -95,10 +99,8 @@ class Bimeson_List {
 
 	private function _enqueue_script( $url_to = false ) {
 		global $pagenow;
-		if ( ( $pagenow === 'post.php' || $pagenow === 'post-new.php' ) && \st\page_template_admin\is_post_type( self::PT ) ) {
-		} else {
-			return;
-		}
+		if ( $pagenow !== 'post.php' && $pagenow !== 'post-new.php' ) return;
+		if ( ! \st\page_template_admin\is_post_type( self::PT ) ) return;
 
 		if ( $url_to === false ) $url_to = \st\get_file_uri( __DIR__ );
 		$url_to = untrailingslashit( $url_to );
@@ -163,6 +165,17 @@ class Bimeson_List {
 					}
 				}
 			}
+		}
+	}
+
+	private function _process_items( &$items ) {
+		foreach ( $items as &$item ) {
+			$date = ( ! empty( $item[ Bimeson::FLD_DATE ] ) ) ? \st\field\normalize_date( $item[ Bimeson::FLD_DATE ] ) : '';
+			if ( $date ) {
+				$date_num = str_pad( str_replace( '-', '', $date ), 8, '9', STR_PAD_RIGHT );
+				$item[ Bimeson::FLD_DATE_NUM ] = $date_num;
+			}
+			unset( $item[ Bimeson::FLD_DATE ] );
 		}
 	}
 

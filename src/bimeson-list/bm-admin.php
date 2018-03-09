@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Admin)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-08
+ * @version 2018-03-09
  *
  */
 
@@ -16,26 +16,28 @@ require_once __DIR__ . '/../../stinc/admin/media-picker.php';
 
 class Bimeson_Admin {
 
-	const NS           = 'bimeson_list';
-	const NOT_MODIFIED = '<NOT MODIFIED>';
+	const NS = 'bimeson_admin';
 
-	const KEY_JSON_PARAMS       = '_bimeson_json_params';
-	const KEY_LIST_ID           = '_bimeson_list_id';
-	const KEY_FIRST_KEY_OMITTED = '_bimeson_pub_first_key_omitted';
-	const KEY_ITEMS             = '_bimeson_pub_items';
-	const KEY_KEY_ORDER         = '_bimeson_pub_key_order';
-	const KEY_KEY_ANCESTOR      = '_bimeson_pub_key_ancestor';
+	const FLD_JSON_PARAMS = '_bimeson_json_params';
+	const FLD_LIST_ID     = '_bimeson_list_id';
 
-	const FLD_MEDIA = '_bimeson_media';
+	const FLD_COUNT              = '_bimeson_count';
+	const FLD_SORT_BY_DATE_FIRST = '_bimeson_sort_by_date_first';
+	const FLD_SHOW_FILTER        = '_bimeson_show_filter';
+	const FLD_YEAR_START         = '_bimeson_year_start';
+	const FLD_YEAR_END           = '_bimeson_year_end';
+
+	const LBL_COUNT              = '表示件数指定（見出無し）';
+	const LBL_SORT_BY_DATE_FIRST = '最初に年で並び替える';
+	const LBL_SHOW_FILTER        = 'フィルターを表示';
+	const LBL_YEAR               = '表示期間（年）';
 
 	private $_core;
 	private $_tax;
-	private $_key;
 
-	public function __construct( $core, $tax, $key ) {
+	public function __construct( $core, $tax ) {
 		$this->_core = $core;
 		$this->_tax  = $tax;
-		$this->_key  = $key;
 	}
 
 	public function enqueue_script( $url_to = false ) {
@@ -46,82 +48,87 @@ class Bimeson_Admin {
 		$post_type = \st\page_template_admin\get_post_type( $post_id );
 		if ( $post_type === Bimeson_List::PT ) {
 		} else {
-			wp_enqueue_style(  self::NS . '_filter_admin', $url_to . '/asset/pub-filter-admin.min.css' );
-			wp_enqueue_script( self::NS . '_filter_admin', $url_to . '/asset/pub-filter-admin.min.js' );
+			wp_enqueue_style(  self::NS . '_filter_admin', $url_to . '/asset/bm-admin.min.css' );
+			wp_enqueue_script( self::NS . '_filter_admin', $url_to . '/asset/bm-admin.min.js' );
 		}
 	}
-
-
-
-	// -------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 	// -----------------------------------------------------------------------------
 
 	public function add_meta_box( $label, $screen ) {
-		\add_meta_box( "{$this->_key}_mb", $label, [ $this, '_cb_output_html' ], $screen );
+		\add_meta_box( "bimeson_admin_mb", $label, [ $this, '_cb_output_html' ], $screen );
 	}
 
 	public function save_mata_box( $post_id ) {
-		if ( ! isset( $_POST["{$this->_key}_nonce"] ) ) return;
-		if ( ! wp_verify_nonce( $_POST["{$this->_key}_nonce"], $this->_key ) ) return;
+		if ( ! isset( $_POST["bimeson_admin_nonce"] ) ) return;
+		if ( ! wp_verify_nonce( $_POST["bimeson_admin_nonce"], 'bimeson_admin' ) ) return;
 
 		$state = $this->_tax->get_filter_state_from_post();
-		update_post_meta( $post_id, self::KEY_JSON_PARAMS, json_encode( $state ) );
-		$omit = empty( $_POST[ Bimeson::KEY_OMIT_FIRST ] ) ? 0 : 1;
-		update_post_meta( $post_id, Bimeson::KEY_OMIT_FIRST, $omit );
+		update_post_meta( $post_id, self::FLD_JSON_PARAMS, json_encode( $state ) );
 
-		$list_id = (int) $_POST[ self::KEY_LIST_ID ];
+		$group = empty( $_POST[ self::FLD_SORT_BY_DATE_FIRST ] ) ? 'false' : 'true';
+		update_post_meta( $post_id, self::FLD_SORT_BY_DATE_FIRST, $group );
+		$show_filter = empty( $_POST[ self::FLD_SHOW_FILTER ] ) ? 'false' : 'true';
+		update_post_meta( $post_id, self::FLD_SHOW_FILTER, $show_filter );
+
+		\st\field\save_post_meta( $post_id, self::FLD_COUNT );
+		\st\field\save_post_meta( $post_id, self::FLD_YEAR_START );
+		\st\field\save_post_meta( $post_id, self::FLD_YEAR_END );
+
+		\st\field\save_post_meta( $post_id, self::FLD_LIST_ID );
 	}
 
-	public function _cb_output_html( $post ) {  // Private
-		wp_nonce_field( $this->_key, "{$this->_key}_nonce" );
+	public function _cb_output_html( $post ) {
+		wp_nonce_field( 'bimeson_admin', "bimeson_admin_nonce" );
 
+		$list_id     = (int) get_post_meta( $post->ID, self::FLD_LIST_ID, true );
+		$group       = get_post_meta( $post->ID, self::FLD_SORT_BY_DATE_FIRST, true );
+		$show_filter = get_post_meta( $post->ID, self::FLD_SHOW_FILTER, true );
+
+		$temp       = get_post_meta( $post->ID, self::FLD_COUNT, true );
+		$count      = ( empty( $temp ) || (int) $temp < 1 ) ? '' : (int) $temp;
+		$temp       = get_post_meta( $post->ID, self::FLD_YEAR_START, true );
+		$year_start = ( empty( $temp ) || (int) $temp < 1970 || (int) $temp > 3000 ) ? '' : (int) $temp;
+		$temp       = get_post_meta( $post->ID, self::FLD_YEAR_END, true );
+		$year_end   = ( empty( $temp ) || (int) $temp < 1970 || (int) $temp > 3000 ) ? '' : (int) $temp;
+?>
+		<div class="<?php echo self::NS ?>">
+			<div class="<?php echo self::NS ?>_setting_row">
+				<?php $this->_echo_list_select( $list_id ); ?>
+			</div>
+			<div class="<?php echo self::NS ?>_setting_row">
+				<label for="<?php echo self::FLD_COUNT ?>"><?php echo self::LBL_COUNT ?><input style="width:4rem;" type="number" size="4" name="<?php echo self::FLD_COUNT ?>" id="<?php echo self::FLD_COUNT ?>" value="<?php echo $count ?>" /></label>
+				<label for="<?php echo self::FLD_SORT_BY_DATE_FIRST ?>"><input type="checkbox" name="<?php echo self::FLD_SORT_BY_DATE_FIRST ?>" id="<?php echo self::FLD_SORT_BY_DATE_FIRST ?>" value="true" <?php checked( $group, 'true' ) ?>/><?php echo self::LBL_SORT_BY_DATE_FIRST ?></label>
+				<label for="<?php echo self::FLD_SHOW_FILTER ?>"><input type="checkbox" name="<?php echo self::FLD_SHOW_FILTER ?>" id="<?php echo self::FLD_SHOW_FILTER ?>" value="true" <?php checked( $show_filter, 'true' ) ?>/><?php echo self::LBL_SHOW_FILTER ?></label>
+			</div>
+			<div class="<?php echo self::NS ?>_setting_row">
+				<label for="<?php echo self::FLD_YEAR_START ?>"><?php echo self::LBL_YEAR ?><input style="width:5rem;" type="number" size="5" name="<?php echo self::FLD_YEAR_START ?>" value="<?php echo $year_start ?>" /></label><span>-</span>
+				<input style="width:5rem;" type="number" size="5" name="<?php echo self::FLD_YEAR_END ?>" value="<?php echo $year_end ?>" />
+			</div>
+			<div class="<?php echo self::NS ?>_filter_row">
+				<?php $this->_tax->the_filter(); ?>
+			</div>
+		</div>
+	<?php
+	}
+
+	private function _echo_list_select( $cur_id ) {
 		$bls = get_posts( [
 			'post_type' => Bimeson_List::PT,
 			'posts_per_page' => -1,
 		] );
-
-		$list_id = get_post_meta( $post->ID, self::KEY_LIST_ID, true );
-		$omit = get_post_meta( $post->ID, Bimeson::KEY_OMIT_FIRST, true );
 ?>
-		<div id="<?php echo $this->_key ?>_body">
-			<div class="<?php echo self::NS ?>_filter_row">
-		<select id="<?php echo self::KEY_LIST_ID ?>" name="<?php echo self::KEY_LIST_ID ?>">
+		<select id="<?php echo self::FLD_LIST_ID ?>" name="<?php echo self::FLD_LIST_ID ?>">
 <?php
 		foreach ( $bls as $bl ) {
 			$_title = esc_html( $bl->post_title );
 			$_id = $bl->ID;
-			echo "<option value=\"$_id\" " . selected( $list_id, $bl->ID, false ) . ">$_title</option>";
+			echo "<option value=\"$_id\" " . selected( $cur_id, $bl->ID, false ) . ">$_title</option>";
 		}
 ?>
 		</select>
-				<label for="<?php echo self::KEY_FIRST_KEY_OMITTED ?>"><input type="checkbox" name="<?php echo self::KEY_FIRST_KEY_OMITTED ?>" id="<?php echo self::KEY_FIRST_KEY_OMITTED ?>" <?php checked( $omit, 1 ) ?>/>一番最初のキーを省略</label>
-			</div>
-			<div class="<?php echo self::NS ?>_filter_row">
-				<?php $this->_core->the_filter( false ); ?>
-			</div>
-		</div>
-	<?php
+<?php
 	}
 
 }

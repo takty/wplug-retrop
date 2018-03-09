@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	var SEL_FILTER_BUTTON = '.bimeson_list_filter_button';
 	var SEL_LOADING_SPIN  = '.bimeson_list_loading_spin';
 
-	var NAME_OUT_ITEMS    = '_bimeson_items';
+	var NAME_ITEMS        = '_bimeson_items';
 	var NAME_ADD_TAX      = '_bimeson_add_tax';
 	var NAME_ADD_TERM     = '_bimeson_add_term';
 
@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (url.length !== 0) urls.push(url);
 		}
 		disableFilterButton();
-		loadFiles(urls, '', NAME_OUT_ITEMS, enableFilterButton);
+		loadFiles(urls, '', NAME_ITEMS, enableFilterButton);
 	});
 
 
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			btn.style.pointerEvents = '';
 			btn.style.opacity = '';
 
-			var res = document.getElementsByName(NAME_OUT_ITEMS)[0];
+			var res = document.getElementsByName(NAME_ITEMS)[0];
 			if (res && res.value !== '') {
 				addTaxCb.disabled = false;
 				addTermCb.disabled = false;

@@ -16,8 +16,8 @@ class Bimeson_Taxonomy {
 	const DEFAULT_TAXONOMY     = 'bm_cat';
 	const DEFAULT_SUB_TAX_BASE = 'bm_cat_';
 
-	const KEY_LAST_CAT_OMITTED = '_bimeson_pub_last_key_omitted';
-	const KEY_IS_HIDDEN  = '_bimeson_pub_last_key_hidden';
+	const KEY_LAST_CAT_OMITTED = '_bimeson_last_cat_omitted';
+	const KEY_IS_HIDDEN        = '_bimeson_is_hidden';
 
 	private $_post_type;
 	private $_labels;
@@ -67,8 +67,6 @@ class Bimeson_Taxonomy {
 		return $this->_sub_tax_to_terms[ $sub_tax ];
 	}
 
-
-
 	private function _register_sub_tax_all() {
 		$roots = $this->_get_root_terms();
 		$sub_taxes = [];
@@ -81,8 +79,7 @@ class Bimeson_Taxonomy {
 	}
 
 	private function _get_query_var_name( $slug ) {
-		$slug = str_replace( '-', '_', $slug );
-		return "{$this->_tax_sub_base}{$slug}";
+		return str_replace( '_', '-', "{$this->_tax_sub_base}{$slug}" );
 	}
 
 	public function register_sub_tax( $tax, $name ) {
@@ -165,8 +162,8 @@ class Bimeson_Taxonomy {
 		return $terms;
 	}
 
-	public function the_filter( $omit_first_cat ) {
-		$slug_to_terms = $this->get_root_slugs_to_sub_terms( $omit_first_cat, true );
+	public function the_filter( $filter_state = false, $year_start = false, $year_end = false ) {
+		$slug_to_terms = $this->get_root_slugs_to_sub_terms( false, true );
 
 		if ( is_admin() ) {
 			global $post;
@@ -175,23 +172,27 @@ class Bimeson_Taxonomy {
 			$state = $this->get_filter_state_from_qvar();
 		}
 		foreach ( $slug_to_terms as $slug => $terms ) {
-			$this->echo_tax_checkboxes( $slug, $terms, $state );
+			$fsset = isset( $filter_state[ $slug ] );
+			if ( ! $fsset || 1 < count( $filter_state[ $slug ] ) ) {
+				$this->_echo_tax_checkboxes( $slug, $terms, $state, $fsset ? $filter_state[ $slug ] : false );
+			}
 		}
 	}
 
-	public function echo_tax_checkboxes( $root_slug, $terms, $state ) {
+	private function _echo_tax_checkboxes( $root_slug, $terms, $state, $filtered ) {
 		$_slug = esc_attr( $root_slug );
 		$qvals = $state[ $root_slug ];
 	?>
-		<div class="pub-list-filter-key" data-key="<?php echo $_slug ?>">
-			<div class="pub-list-filter-key-inner">
-				<input type="checkbox" class="pub-list-filter-switch tgl tgl-light" id="<?php echo $_slug ?>" name="<?php echo $_slug ?>" <?php if ( ! empty( $qvals ) ) echo 'checked' ?> value="1"></input>
+		<div class="bimeson-filter-key" data-key="<?php echo $_slug ?>">
+			<div class="bimeson-filter-key-inner">
+				<input type="checkbox" class="bimeson-filter-switch tgl tgl-light" id="<?php echo $_slug ?>" name="<?php echo $_slug ?>" <?php if ( ! empty( $qvals ) ) echo 'checked' ?> value="1"></input>
 				<label class="tgl-btn" for="<?php echo $_slug ?>"></label>
-				<div class="pub-list-filter-cbs">
+				<div class="bimeson-filter-cbs">
 	<?php
 		foreach ( $terms as $t ) :
 			$_id  = esc_attr( $this->sub_term_to_id( $root_slug, $t ) );
 			$_val = esc_attr( $t->slug );
+			if ( $filtered !== false && ! in_array( $t->slug, $filtered, true ) ) continue;
 			if ( class_exists( '\st\Multilang' ) ) {
 				$_name = esc_html( \st\Multilang::get_instance()->get_term_name( $t ) );
 			} else {
@@ -213,7 +214,7 @@ class Bimeson_Taxonomy {
 
 	public function get_filter_state_from_meta( $post ) {
 		$slug_to_terms = $this->get_root_slugs_to_sub_terms();
-		$ret = json_decode( get_post_meta( $post->ID, Bimeson_Admin::KEY_JSON_PARAMS, true ), true );
+		$ret = json_decode( get_post_meta( $post->ID, Bimeson_Admin::FLD_JSON_PARAMS, true ), true );
 
 		foreach ( $slug_to_terms as $slug => $terms ) {
 			if ( ! isset( $ret[ $slug ] ) ) $ret[ $slug ] = [];

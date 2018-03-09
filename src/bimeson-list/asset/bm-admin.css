@@ -1,25 +1,17 @@
-@media (min-width: 900px) {
-	.bimeson-pub-filter {
-		column-count: 2;
-	}
-}
-
-.pub-list-filter-key {
-	padding: 4px 0;
-}
-
-.pub-list-filter-key-inner {
-	display: inline-flex;
-	width: 100%;
+.bimeson-filter-key {
+	display: flex;
 	align-items: flex-start;
 	padding: 4px 0;
 }
+.bimeson_admin_edit_row { text-align: right; }
 
-.pub-list-filter-cbs {
+.bimeson-filter-cbs {
+	display: flex;
+	flex-wrap: wrap;
+	padding: 0.25em 0 0;
 }
-.pub-list-filter-cbs label {
+.bimeson-filter-cbs label {
 	padding: 8px;
-	display: inline-block;
 }
 input[type=checkbox].tgl {
 	display: none;
@@ -28,22 +20,21 @@ input[type=checkbox].tgl {
 .tgl + .tgl-btn {
 	box-sizing: content-box;
 
-	margin-right: 4px;
+	margin-right: 12px;
 	display: block;
 	outline: 0;
 
-	width: 4em;
-	min-width: 4em;
-	height: 2em;
+	width: 2em;
+	min-width: 2em;
+	height: 1em;
 
 	position: relative;
 	cursor: pointer;
 	user-select: none;
-	top: 2px;
 
 	padding: 2px;
 	background: #fff;
-	border-radius: 2em;
+	border-radius: 1em;
 	transition: all .4s ease;
 
 	border: 1px solid #ddd;
@@ -73,5 +64,19 @@ input[type=checkbox].tgl {
 }
 
 .tgl-light:checked + .tgl-btn {
-	background: #fa0;
+	background: #b3cefb;
+}
+
+.bimeson_admin > div:not(:first-child) {
+	margin-top: 16px;
+}
+
+.bimeson_admin_setting_row > *:not(:first-child) {
+	margin-left: 8px;
+}
+
+.bimeson_admin_filter_row {
+	padding: 6px;
+	border: 1px solid #eee;
+	border-radius: 4px;
 }

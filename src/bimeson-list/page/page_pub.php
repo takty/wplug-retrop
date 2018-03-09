@@ -6,7 +6,7 @@
  * Template Name: Publications
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-06
+ * @version 2018-03-09
  *
  */
 
@@ -18,7 +18,7 @@ get_header();
 <?php
 while ( have_posts() ) : the_post();
 	get_template_part( 'template-parts/content', 'page' );
-	\st\Bimeson::get_instance()->the_pub_list_section();
+	\st\Bimeson::get_instance()->the_list_section();
 endwhile;
 ?>
 		</main>

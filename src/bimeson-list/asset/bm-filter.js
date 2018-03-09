@@ -3,17 +3,17 @@
  * Publication List Filter
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-01-29
+ * @version 2018-03-09
  *
  */
 
 
 document.addEventListener('DOMContentLoaded', function () {
 
-	var SEL_ITEM_ALL        = '.bimeson-pub-content > *';
-	var SEL_FILTER_KEY      = '.pub-list-filter-key';
-	var SEL_FILTER_SWITCH   = '.pub-list-filter-switch';
-	var SEL_FILTER_CHECKBOX = 'input:not(.pub-list-filter-switch)';
+	var SEL_ITEM_ALL        = '.bimeson-content > *';
+	var SEL_FILTER_KEY      = '.bimeson-filter-key';
+	var SEL_FILTER_SWITCH   = '.bimeson-filter-switch';
+	var SEL_FILTER_CHECKBOX = 'input:not(.bimeson-filter-switch)';
 
 	var keyToSwAndCbs = {};
 	var fkElms = document.querySelectorAll(SEL_FILTER_KEY);
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	update();
 
 	function update() {
-		keyToVals = getKeyToVals(keyToSwAndCbs);
+		var keyToVals = getKeyToVals(keyToSwAndCbs);
 		filterLists(allElms, keyToVals);
 		countUpItems(allElms);
 		setUrlParams(keyToSwAndCbs);
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
 		for (var key in keyToSwAndCbs) {
 			var sw = keyToSwAndCbs[key][0];
 			var cbs = keyToSwAndCbs[key][1];
-			if (sw.checked) ps.push('pub-' + key + '=' + concatCheckedQvals(cbs));
+			if (sw.checked) ps.push('bm-cat-' + key + '=' + concatCheckedQvals(cbs));
 		}
 		if (ps.length > 0) {
 			var ret = '?' + ps.join('&');
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	function concatCheckedQvals(cbs) {
 		var vs = [];
 		for (var i = 0; i < cbs.length; i += 1) {
-			if (cbs[i].checked) vs.push(cbs[i].dataset.val);
+			if (cbs[i].checked) vs.push(cbs[i].value);
 		}
 		return vs.join(',');
 	}
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function () {
 	function getCheckedVals(cbs) {
 		var vs = [];
 		for (var i = 0; i < cbs.length; i += 1) {
-			if (cbs[i].checked) vs.push(cbs[i].dataset.val);
+			if (cbs[i].checked) vs.push(cbs[i].value);
 		}
 		return vs;
 	}
@@ -134,7 +134,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			var contains = false;
 
 			for (var i = 0; i < fvals.length; i += 1) {
-				if (itemElm.classList.contains('pub_key-' + fvals[i])) {
+				if (itemElm.classList.contains('bm-cat-' + key + '-' + fvals[i])) {
 					contains = true;
 					break;
 				}
