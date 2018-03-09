@@ -6,106 +6,201 @@ namespace st;
  * Bimeson (Taxonomy)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-02-23
+ * @version 2018-03-09
  *
  */
 
 
 class Bimeson_Taxonomy {
 
-	const DEFAULT_TAXONOMY = 'pub_key';
+	const DEFAULT_TAXONOMY     = 'bm_cat';
+	const DEFAULT_SUB_TAX_BASE = 'bm_cat_';
 
-	const KEY_LAST_KEY_OMITTED = '_bimeson_pub_last_key_omitted';
-	const KEY_LAST_KEY_HIDDEN  = '_bimeson_pub_last_key_hidden';
+	const KEY_LAST_CAT_OMITTED = '_bimeson_pub_last_key_omitted';
+	const KEY_IS_HIDDEN  = '_bimeson_pub_last_key_hidden';
 
-	private $_taxonomy;
+	private $_post_type;
+	private $_labels;
+	private $_tax_root;
+	private $_tax_sub_base;
 
-	public function __construct( $taxonomy = false ) {
-		$this->_taxonomy = ( $taxonomy === false ) ? self::DEFAULT_TAXONOMY : $taxonomy;
+	private $_old_taxonomy = [];
+	private $_old_terms = [];
 
-		register_taxonomy( $this->_taxonomy, 'page', [
+	private $_root_terms = false;
+	private $_sub_tax_to_terms = [];
+
+	public function __construct( $post_type, $labels, $taxonomy = false, $sub_tax_base = false ) {
+		$this->_post_type    = $post_type;
+		$this->_labels       = $labels;
+		$this->_tax_root     = ( $taxonomy === false ) ? self::DEFAULT_TAXONOMY : $taxonomy;
+		$this->_tax_sub_base = ( $sub_tax_base === false ) ? self::DEFAULT_SUB_TAX_BASE : $sub_tax_base;
+
+		register_taxonomy( $this->_tax_root, $this->_post_type, [
 			'hierarchical'       => true,
-			'label'              => '研究業績キー',
+			'label'              => $this->_labels['taxonomy'],
 			'public'             => false,
 			'show_ui'            => true,
 			'show_in_quick_edit' => false,
 			'meta_box_cb'        => false,
 			'rewrite'            => false,
 		] );
-		\st\ordered_term\make_terms_ordered( [ $this->_taxonomy ] );
+		register_taxonomy_for_object_type( $this->_tax_root, $this->_post_type );
+		\st\ordered_term\make_terms_ordered( [ $this->_tax_root ] );
+		$this->_register_sub_tax_all();
 
-		add_action( "{$this->_taxonomy}_edit_form_fields", [ $this, '_cb_taxonomy_edit_form_fields' ], 10, 2 );
-		add_action( "edited_{$this->_taxonomy}", [ $this, '_cb_edited_taxonomy' ], 10, 2 );
-		add_filter( 'query_vars', [ $this, '_cb_query_vars' ] );
+		add_action( "{$this->_tax_root}_edit_form_fields", [ $this, '_cb_taxonomy_edit_form_fields' ], 10, 2 );
+		add_action( "edit_terms",                          [ $this, '_cb_edit_taxonomy' ], 10, 2 );
+		add_action( "edited_{$this->_tax_root}",           [ $this, '_cb_edited_taxonomy' ], 10, 2 );
+		add_filter( 'query_vars',                          [ $this, '_cb_query_vars' ] );
+	}
+
+	private function _get_root_terms() {
+		if ( $this->_root_terms ) return $this->_root_terms;
+		$this->_root_terms = get_terms( $this->_tax_root, [ 'hide_empty' => 0 ] );
+		return $this->_root_terms;
+	}
+
+	private function _get_sub_terms( $sub_tax ) {
+		if ( $this->_sub_tax_to_terms[ $sub_tax ] !== false ) return $this->_sub_tax_to_terms[ $sub_tax ];
+		$this->_sub_tax_to_terms[ $sub_tax ] = get_terms( $sub_tax, [ 'hide_empty' => 0 ] );
+		return $this->_sub_tax_to_terms[ $sub_tax ];
+	}
+
+
+
+	private function _register_sub_tax_all() {
+		$roots = $this->_get_root_terms();
+		$sub_taxes = [];
+		foreach ( $roots as $r ) {
+			$sub_tax = $this->term_to_taxonomy( $r );
+			$sub_taxes[] = $sub_tax;
+			$this->register_sub_tax( $sub_tax, $r->name );
+		}
+		\st\ordered_term\make_terms_ordered( $sub_taxes );
+	}
+
+	private function _get_query_var_name( $slug ) {
+		$slug = str_replace( '-', '_', $slug );
+		return "{$this->_tax_sub_base}{$slug}";
+	}
+
+	public function register_sub_tax( $tax, $name ) {
+		register_taxonomy( $tax, $this->_post_type, [
+			'hierarchical'       => true,
+			'label'              => "{$this->_labels['taxonomy']} ($name)",
+			'public'             => true,
+			'show_ui'            => true,
+			'rewrite'            => false,
+			'sort'               => true,
+			'show_admin_column'  => false,
+			'show_in_quick_edit' => false,
+			'meta_box_cb'        => false,
+
+		] );
+		$this->_root_terms = false;
+		$this->_sub_tax_to_terms[ $tax ] = false;
 	}
 
 	public function get_taxonomy() {
-		return $this->_taxonomy;
+		return $this->_tax_root;
 	}
 
-	public function get_slug_to_child_term_ids( $omit = false, $do_hidden_option = false ) {
-		$roots = get_terms( $this->_taxonomy, [ 'hide_empty' => 0, 'parent' => '0' ] );
-		$slug_to_term_ids = [];
-		foreach ( $roots as $idx => $t ) {
-			if ( $omit && $idx === 0 ) continue;
-			if ( $do_hidden_option ) {
-				$val_hide = get_term_meta( $t->term_id, self::KEY_LAST_KEY_HIDDEN, true );
+	public function term_to_taxonomy( $term ) {
+		$slug = '';
+		if ( is_string( $term ) ) {
+			$slug = $term;
+		} else {
+			$slug = $term->slug;
+		}
+		$slug = str_replace( '-', '_', $slug );
+		return $this->_tax_sub_base . $slug;
+	}
+
+	public function sub_term_to_id( $root_slug, $sub_term ) {
+		$sub_tax = $this->term_to_taxonomy( $root_slug );
+		return str_replace( '_', '-', "{$sub_tax}-{$sub_term->slug}" );
+	}
+
+	public function get_root_slugs() {
+		$roots = $this->_get_root_terms();
+		return array_map( function ( $e ) { return $e->slug; }, $roots );
+	}
+
+	public function get_sub_taxonomies() {
+		$rss = $this->get_root_slugs();
+		$slugs = [];
+		foreach( $rss as $rs ) $slugs[ $rs ] = $this->term_to_taxonomy( $rs );
+		return $slugs;
+	}
+
+	public function get_root_slugs_to_sub_slugs( $do_omit_first = false, $do_hide = false ) {
+		$roots = $this->_get_root_terms();
+		$slugs = [];
+		foreach ( $roots as $idx => $r ) {
+			if ( $do_omit_first && $idx === 0 ) continue;
+			if ( $do_hide ) {
+				$val_hide = get_term_meta( $r->term_id, self::KEY_IS_HIDDEN, true );
 				if ( $val_hide ) continue;
 			}
-			$terms = get_terms( $this->_taxonomy, [ 'hide_empty' => 0, 'parent' => $t->term_id ] );
-			$slug_to_term_ids[ $t->slug ] = array_map( function ( $x ) { return $x->term_id; }, $terms );
+			$sub_tax = $this->term_to_taxonomy( $r );
+			$terms = $this->_get_sub_terms( $sub_tax );
+			$slugs[ $r->slug ] = array_map( function ( $e ) { return $e->slug; }, $terms );;
 		}
-		return $slug_to_term_ids;
+		return $slugs;
 	}
 
-	public function get_pub_key_ancestor() {
-		$ts = get_terms( $this->_taxonomy, [ 'hide_empty' => 0 ] );
-		$keys = [];
-		foreach ( $ts as $t ) {
-			$a = $this->_get_pub_key_antecedent( $t );
-			if ( ! empty( $a ) ) $keys[ $t->slug ] = $a;
+	public function get_root_slugs_to_sub_terms( $do_omit_first = false, $do_hide = false ) {
+		$roots = $this->_get_root_terms();
+		$terms = [];
+		foreach( $roots as $idx => $r ) {
+			if ( $do_omit_first && $idx === 0 ) continue;
+			if ( $do_hide ) {
+				$val_hide = get_term_meta( $r->term_id, self::KEY_IS_HIDDEN, true );
+				if ( $val_hide ) continue;
+			}
+			$sub_tax = $this->term_to_taxonomy( $r );
+			$terms[ $r->slug ] = $this->_get_sub_terms( $sub_tax );
 		}
-		return $keys;
+		return $terms;
 	}
 
-	public function get_pub_key_order() {
-		$roots = get_terms( $this->_taxonomy, [ 'hide_empty' => 0, 'parent' => '0' ] );
-		$keys = [];
+	public function the_filter( $omit_first_cat ) {
+		$slug_to_terms = $this->get_root_slugs_to_sub_terms( $omit_first_cat, true );
 
-		foreach ( $roots as $r ) {
-			$terms = get_terms( $this->_taxonomy, [ 'hide_empty' => 0, 'parent' => $r->term_id ] );
-			$ret = [];
-			foreach ( $terms as $t ) $ret[] = $t;
-			$this->_get_pub_key_child( $terms, $ret );
-
-			$orders = [];
-			foreach ( $ret as $index => $tc ) $orders[ $tc->slug ] = $index;
-			$keys[ $r->slug ] = $orders;
+		if ( is_admin() ) {
+			global $post;
+			$state = $this->get_filter_state_from_meta( $post );
+		} else {
+			$state = $this->get_filter_state_from_qvar();
 		}
-		$keys['__root__']  = array_map( function ( $x ) { return $x->slug; }, $roots );
-		$keys['__depth__'] = $this->get_pub_key_depths();
-		return $keys;
+		foreach ( $slug_to_terms as $slug => $terms ) {
+			$this->echo_tax_checkboxes( $slug, $terms, $state );
+		}
 	}
 
-	public function show_key_checkboxes( $term_ids, $term_parent_slug, $selected = '' ) {
-		$v = get_query_var( "pub-$term_parent_slug" );
-		$_slug = esc_attr( $term_parent_slug );
-		$qvals = empty( $v ) ? [] : explode( ',', $v );
+	public function echo_tax_checkboxes( $root_slug, $terms, $state ) {
+		$_slug = esc_attr( $root_slug );
+		$qvals = $state[ $root_slug ];
 	?>
 		<div class="pub-list-filter-key" data-key="<?php echo $_slug ?>">
 			<div class="pub-list-filter-key-inner">
-				<input type="checkbox" class="pub-list-filter-switch tgl tgl-light" id="<?php echo $_slug ?>" <?php if ( ! empty( $qvals ) ) echo 'checked' ?>></input>
+				<input type="checkbox" class="pub-list-filter-switch tgl tgl-light" id="<?php echo $_slug ?>" name="<?php echo $_slug ?>" <?php if ( ! empty( $qvals ) ) echo 'checked' ?> value="1"></input>
 				<label class="tgl-btn" for="<?php echo $_slug ?>"></label>
 				<div class="pub-list-filter-cbs">
 	<?php
-		foreach ( $term_ids as $t_id ) :
-			$t = get_term( $t_id, $this->_taxonomy );
-			$_id  = esc_attr( "{$this->_taxonomy}-{$t->slug}" );
+		foreach ( $terms as $t ) :
+			$_id  = esc_attr( $this->sub_term_to_id( $root_slug, $t ) );
 			$_val = esc_attr( $t->slug );
+			if ( class_exists( '\st\Multilang' ) ) {
+				$_name = esc_html( \st\Multilang::get_instance()->get_term_name( $t ) );
+			} else {
+				$_name = esc_html( $t->name );
+			}
 	?>
 					<label>
-						<input type="checkbox" id="<?php echo $_id ?>" <?php if ( in_array( $t->slug, $qvals, true ) ) echo 'checked' ?> data-val="<?php echo $_val ?>"></input>
-						<?php echo esc_html( $t->name ) ?>
+						<input type="checkbox" id="<?php echo $_id ?>" name="<?php echo $_id ?>" <?php if ( in_array( $t->slug, $qvals, true ) ) echo 'checked' ?> value="<?php echo $_val ?>"></input>
+						<?php echo $_name ?>
 					</label>
 	<?php
 		endforeach;
@@ -116,51 +211,162 @@ class Bimeson_Taxonomy {
 	<?php
 	}
 
-	public function get_pub_key_depths() {
-		$roots = get_terms( $this->_taxonomy, [ 'hide_empty' => 0, 'parent' => '0' ] );
-		$top_key_to_depth = [];
-		$keys = [];
+	public function get_filter_state_from_meta( $post ) {
+		$slug_to_terms = $this->get_root_slugs_to_sub_terms();
+		$ret = json_decode( get_post_meta( $post->ID, Bimeson_Admin::KEY_JSON_PARAMS, true ), true );
 
-		foreach ( $roots as $t ) {
-			$terms = get_terms( $this->_taxonomy, [ 'hide_empty' => 0, 'child_of' => $t->term_id ] );
-			$depth = 0;
-			foreach ( $terms as $tc ) {
-				$d = $this->_get_pub_key_depth( $tc );
-				if ( $depth < $d ) $depth = $d;
-			}
-			$top_key_to_depth[ $t->slug ] = $depth;
+		foreach ( $slug_to_terms as $slug => $terms ) {
+			if ( ! isset( $ret[ $slug ] ) ) $ret[ $slug ] = [];
 		}
-		return $top_key_to_depth;
+		return $ret;
 	}
 
-	public function get_pub_key_roots() {
-		$roots = get_terms( $this->_taxonomy, [ 'hide_empty' => 0, 'parent' => '0' ] );
-		return array_map( function ( $x ) { return $x->slug; }, $roots );
+	public function get_filter_state_from_qvar() {
+		$slug_to_terms = $this->get_root_slugs_to_sub_terms();
+		$ret = [];
+
+		foreach ( $slug_to_terms as $slug => $terms ) {
+			$val = get_query_var( $this->_get_query_var_name( $slug ) );
+			$temp = empty( $val ) ? [] : explode( ',', $val );
+			$ret[ $slug ] = $temp;
+		}
+		return $ret;
 	}
 
-	public function get_pub_key_last_omit() {
-		$roots = get_terms( $this->_taxonomy, [ 'hide_empty' => 0, 'parent' => '0' ] );
-		$val_to_last_omit = [];
+	public function get_filter_state_from_post() {
+		$slug_to_terms = $this->get_root_slugs_to_sub_terms();
+		$ret = [];
 
-		foreach ( $roots as $r ) {
-			$terms = get_terms( $this->_taxonomy, [ 'hide_empty' => 0, 'child_of' => $r->term_id ] );
+		foreach ( $slug_to_terms as $slug => $terms ) {
+			if ( ! isset( $_POST[ $slug ] ) ) continue;
+			$temp = [];
 
 			foreach ( $terms as $t ) {
-				$val = get_term_meta( $t->term_id, self::KEY_LAST_KEY_OMITTED, true );
-				$val_to_last_omit[ $t->slug ] = ($val === '1');
+				$id  = $this->sub_term_to_id( $slug, $t );
+				$val = isset( $_POST[ $id ] ) ? $_POST[ $id ] : false;
+				if ( $val ) $temp[] = $t->slug;
+			}
+			$ret[ $slug ] = $temp;
+		}
+		return $ret;
+	}
+
+
+	// -------------------------------------------------------------------------
+
+	public function get_slug_to_last_omit() {
+		$rs_to_sub_terms = $this->get_root_slugs_to_sub_terms();
+		$slug_to_last_omit = [];
+
+		foreach ( $rs_to_sub_terms as $rs => $terms ) {
+			foreach ( $terms as $t ) {
+				$val = get_term_meta( $t->term_id, self::KEY_LAST_CAT_OMITTED, true );
+				if ( $val === '1' ) $slug_to_last_omit[ $t->slug ] = true;
 			}
 		}
-		return $val_to_last_omit;
+		return $slug_to_last_omit;
+	}
+
+	public function get_sub_slug_to_ancestors() {
+		$rs_to_sub_terms = $this->get_root_slugs_to_sub_terms();
+		$keys = [];
+
+		foreach ( $rs_to_sub_terms as $rs => $terms ) {
+			foreach ( $terms as $t ) {
+				$a = $this->_get_sub_slug_to_ancestors( $this->term_to_taxonomy( $rs ), $t );
+				if ( ! empty( $a ) ) $keys[ $t->slug ] = $a;
+			}
+		}
+		return $keys;
+	}
+
+	private function _get_sub_slug_to_ancestors( $sub_tax, $term ) {
+		$ret = [];
+		while ( true ) {
+			$pid = $term->parent;
+			if ( $pid === 0 ) break;
+			$term = get_term_by( 'id', $pid, $sub_tax );
+			$ret[] = $term->slug;
+		}
+		return array_reverse( $ret );
+	}
+
+	public function get_root_slugs_to_sub_depths() {
+		$rs_to_sub_terms = $this->get_root_slugs_to_sub_terms();
+		$rs_to_depth = [];
+
+		foreach ( $rs_to_sub_terms as $rs => $terms ) {
+			$depth = 0;
+			foreach ( $terms as $t ) {
+				$d = $this->_get_sub_tax_depth( $this->term_to_taxonomy( $rs ), $t );
+				if ( $depth < $d ) $depth = $d;
+			}
+			$rs_to_depth[ $rs ] = $depth;
+		}
+		return $rs_to_depth;
+	}
+
+	private function _get_sub_tax_depth( $sub_tax, $term ) {
+		$ret = 1;
+		while ( true ) {
+			$pid = $term->parent;
+			if ( $pid === 0 ) break;
+			$term = get_term_by( 'id', $pid, $sub_tax );
+			$ret++;
+		}
+		return $ret;
 	}
 
 
 	// Callback Functions ------------------------------------------------------
 
 	public function _cb_taxonomy_edit_form_fields( $term, $taxonomy ) {
-		self::_boolean_form( $term, self::KEY_LAST_KEY_OMITTED, '一番最後のキーを省略' );
+		self::_boolean_form( $term, self::KEY_LAST_CAT_OMITTED, $this->_labels['omit_last_cat'] );
 		if ( $term->parent === '0' ) {
-			self::_boolean_form( $term, self::KEY_LAST_KEY_HIDDEN, '閲覧画面から隠す' );
+			self::_boolean_form( $term, self::KEY_IS_HIDDEN, $this->_labels['hide from view'] );
 		}
+	}
+
+	public function _cb_edit_taxonomy( $term_id, $taxonomy ) {
+		if ( $taxonomy !== $this->_tax_root ) return;
+
+		$term = get_term_by( 'id', $term_id, $taxonomy );
+		$s = $term->slug;
+		if ( 32 < strlen( $s ) + strlen( $this->_tax_sub_base ) ) {
+			$s = substr( $s, 0, 32 - ( strlen( $this->_tax_sub_base ) ) );
+			wp_update_term( $term_id, $taxonomy, [ 'slug' => $s ] );
+		}
+
+		$this->_old_taxonomy = $this->term_to_taxonomy( $term );
+
+		$terms = get_terms( $this->_old_taxonomy, [ 'hide_empty' => 0 ] );
+		foreach ( $terms as $t ) {
+			$this->_old_terms[] = [ 'slug' =>  $t->slug, 'name' => $t->name, 'term_id' => $t->term_id ];
+		}
+	}
+
+	public function _cb_edited_taxonomy( $term_id, $taxonomy ) {
+		self::_is_not_empty( $term_id, self::KEY_LAST_CAT_OMITTED );
+		self::_is_not_empty( $term_id, self::KEY_IS_HIDDEN );
+
+		$term = get_term_by( 'id', $term_id, $this->_tax_root );
+		$new_taxonomy = $this->term_to_taxonomy( $term );
+
+		if ( $this->_old_taxonomy !== $new_taxonomy ) {
+			$this->register_sub_tax( $new_taxonomy, $term->name );
+			foreach ( $this->_old_terms as $t ) {
+				wp_delete_term( $t['term_id'], $this->_old_taxonomy );
+				wp_insert_term( $t['name'], $new_taxonomy, [ 'slug' => $t['slug'] ] );
+			}
+		}
+	}
+
+	public function _cb_query_vars( $query_vars ) {
+		$roots = $this->_get_root_terms();
+		foreach ( $roots as $r ) {
+			$query_vars[] = $this->_get_query_var_name( $r->slug );
+		}
+		return $query_vars;
 	}
 
 	static private function _boolean_form( $term, $key, $label ) {
@@ -175,63 +381,12 @@ class Bimeson_Taxonomy {
 		<?php
 	}
 
-	public function _cb_edited_taxonomy( $term_id, $taxonomy ) {
-		self::_is_not_empty( $term_id, self::KEY_LAST_KEY_OMITTED );
-		self::_is_not_empty( $term_id, self::KEY_LAST_KEY_HIDDEN );
-	}
-
 	static private function _is_not_empty( $term_id, $key ) {
 		if ( empty( $_POST[ $key ] ) ) {
 			delete_term_meta( $term_id, $key );
 		} else {
 			update_term_meta( $term_id, $key, 1 );
 		}
-	}
-
-	public function _cb_query_vars( $query_vars ) {
-		$top_keys = get_terms( $this->_taxonomy, [ 'hide_empty' => 0, 'parent' => '0' ] );
-		foreach ( $top_keys as $t ) {
-			$query_vars[] = "pub-{$t->slug}";
-		}
-		return $query_vars;
-	}
-
-
-	// Private Functions -------------------------------------------------------
-
-	private function _get_pub_key_antecedent( $term ) {
-		$ret = [];
-		while ( true ) {
-			$pid = $term->parent;
-			if ( $pid === 0 ) break;
-			$term = get_term_by( 'id', $pid, $this->_taxonomy );
-			if ( $term->parent === 0 ) break;
-			$ret[] = $term->slug;
-		}
-		return $ret;
-	}
-
-	private function _get_pub_key_child( $terms, &$ret ) {
-		$css = [];
-		foreach ( $terms as $t ) {
-			$cs = get_terms( $this->_taxonomy, [ 'hide_empty' => 0, 'parent' => $t->term_id ] );
-			foreach ( $cs as $c ) {
-				$css[] = $c;
-				$ret[] = $c;
-			}
-		}
-		if ( ! empty( $css ) ) $this->_get_pub_key_child( $css, $ret );
-	}
-
-	private function _get_pub_key_depth( $term ) {
-		$ret = 0;
-		while ( true ) {
-			$pid = $term->parent;
-			if ( $pid === 0 ) break;
-			$term = get_term_by( 'id', $pid, $this->_taxonomy );
-			$ret++;
-		}
-		return $ret;
 	}
 
 }

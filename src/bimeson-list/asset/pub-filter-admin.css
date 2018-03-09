@@ -3,7 +3,7 @@
 	align-items: flex-start;
 	padding: 4px 0;
 }
-.bimeson_admin_edit_row { text-align: right; }
+.bimeson_list_edit_row { text-align: right; }
 
 .pub-list-filter-cbs {
 	display: flex;
@@ -65,12 +65,12 @@ input[type=checkbox].tgl {
 	background: #fa0;
 }
 
-.bimeson_admin_filter_loading {
+.bimeson_list_filter_loading {
 	margin-right: 1em;
 	visibility: hidden;
 }
 
-.bimeson_admin_filter_loading span {
+.bimeson_list_filter_loading span {
 	display: inline-block;
 	width: 2em;
 	height: 2em;
@@ -86,7 +86,7 @@ input[type=checkbox].tgl {
 	100% { transform: rotate(360deg) scale(1); }
 }
 
-.bimeson_admin_filter_row {
+.bimeson_list_filter_row {
 	padding: 6px;
 	border: 1px solid #eee;
 	border-radius: 4px;
