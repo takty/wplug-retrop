@@ -6,7 +6,7 @@ namespace st;
  * Functions and Definitions for Bimeson
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-09
+ * @version 2018-03-13
  *
  */
 
@@ -168,10 +168,6 @@ class Bimeson {
 
 		$idx = 0;
 		foreach ( $rs_to_slugs as $rs => $slugs ) {
-			// if ( $idx === 0 && $this->_first_cat_omitted ) {
-			// 	$idx += 1;
-			// 	continue;
-			// }
 			list( $ai, $av ) = $this->_get_one_of_ordered_terms( $a, $rs, $slugs );
 			list( $bi, $bv ) = $this->_get_one_of_ordered_terms( $b, $rs, $slugs );
 			if ( $av === null && $bv === null) continue;
@@ -183,7 +179,6 @@ class Bimeson {
 				if ( $ai < $bi ) return -1;
 				if ( $ai > $bi ) return 1;
 			}
-			// $idx += 1;
 		}
 		if ( isset( $a[ self::FLD_DATE_NUM ] ) && isset( $b[ self::FLD_DATE_NUM ] ) && $a[ self::FLD_DATE_NUM ] !== $b[ self::FLD_DATE_NUM ] ) {
 			return $a[ self::FLD_DATE_NUM ] < $b[ self::FLD_DATE_NUM ] ? 1 : -1;
@@ -241,8 +236,10 @@ class Bimeson {
 
 	public function the_list( $items, $filter_state = false, $year_start = false, $year_end = false, $count = false, $sort_by_year_first = false ) {
 		if ( ! is_array( $items ) ) return;
+		$sl = \st\Multilang::get_instance()->get_site_lang();
+
 		$this->_sort_items( $items, $sort_by_year_first );
-		if ( $filter_state !== false ) $items = $this->_filter_items( $items, $filter_state, $year_start, $year_end, $count );
+		if ( $filter_state !== false ) $items = $this->_filter_items( $items, $filter_state, $year_start, $year_end, $count, $sl );
 
 		$rss = $this->_tax->get_root_slugs();
 		$rs_to_depth  = $this->_tax->get_root_slugs_to_sub_depths();
@@ -261,7 +258,7 @@ class Bimeson {
 		$prev_cat_key = array_pad( [], $hier_size_orig, '' );
 
 		if ( $count !== false ) {
-			$this->_echo_list( $items );
+			$this->_echo_list( $items, $sl );
 			return;
 		}
 		$cur_year = '';
@@ -297,7 +294,7 @@ class Bimeson {
 					}
 				}
 				if ( $is_cat_exist && ! empty( $buf ) ) {
-					$this->_echo_list( $buf );
+					$this->_echo_list( $buf, $sl );
 					$buf = [];
 				}
 				for ( $h = $hier; $h < $hier_size; $h++ ) {
@@ -308,10 +305,10 @@ class Bimeson {
 			$item['__catkey__'] = implode( ',', $cat_key );
 			$buf[] = $item;
 		}
-		if ( ! empty( $buf ) ) $this->_echo_list( $buf );
+		if ( ! empty( $buf ) ) $this->_echo_list( $buf, $sl );
 	}
 
-	private function _filter_items( $items, $filter_state, $year_start, $year_end, $count ) {
+	private function _filter_items( $items, $filter_state, $year_start, $year_end, $count, $sl ) {
 		$ret = [];
 		$do_year_filter = ( $year_start !== false || $year_end !== false );
 		if ( $year_start === false ) $year_start = 0;
@@ -335,6 +332,13 @@ class Bimeson {
 				}
 				continue 2;  // next item
 			}
+
+			if ( isset( $item[ self::FLD_BODY . "_$sl" ] ) && ! empty( $item[ self::FLD_BODY . "_$sl" ] ) ) {
+			} else if ( isset( $item[ self::FLD_BODY ] ) && ! empty( $item[ self::FLD_BODY ] ) ) {
+			} else {
+				continue;
+			}
+
 			$ret[] = $item;
 			if ( $count !== false && count( $ret ) === $count ) break;
 		}
@@ -384,26 +388,27 @@ class Bimeson {
 		echo "<$tag class=\"year\" data-depth=\"$data_depth\">$_name</$tag>\n";
 	}
 
-	private function _echo_list( $items ) {
+	private function _echo_list( $items, $sl ) {
 		if ( count( $items ) === 1 ) {
 			echo "<ul>\n";
-			foreach ( $items as $it ) $this->_echo_list_item( $it );
+			foreach ( $items as $it ) $this->_echo_list_item( $it, $sl );
 			echo "</ul>\n";
 		} else {
 			echo "<ol>\n";
-			foreach ( $items as $it ) $this->_echo_list_item( $it );
+			foreach ( $items as $it ) $this->_echo_list_item( $it, $sl );
 			echo "</ol>\n";
 		}
 	}
 
-	private function _echo_list_item( $item ) {
-		$sl = \st\Multilang::get_instance()->get_site_lang();
-		if ( isset( $item[ self::FLD_BODY . "_$sl" ] ) ) $body = $item[ self::FLD_BODY . "_$sl" ];
-		else if ( isset( $item[ self::FLD_BODY ] ) ) $body = $item[ self::FLD_BODY ];
-		else {
+	private function _echo_list_item( $item, $sl ) {
+		$body = '';
+		if ( isset( $item[ self::FLD_BODY . "_$sl" ] ) && ! empty( $item[ self::FLD_BODY . "_$sl" ] ) ) {
+			$body = $item[ self::FLD_BODY . "_$sl" ];
+		} else if ( isset( $item[ self::FLD_BODY ] ) && ! empty( $item[ self::FLD_BODY ] ) ) {
+			$body = $item[ self::FLD_BODY ];
+		} else {
 			return;
 		}
-
 		$doi    = isset( $item[ self::FLD_DOI ] )        ? $item[ self::FLD_DOI ]        : '';
 		$lurl   = isset( $item[ self::FLD_LINK_URL ] )   ? $item[ self::FLD_LINK_URL ]   : '';
 		$ltitle = isset( $item[ self::FLD_LINK_TITLE ] ) ? $item[ self::FLD_LINK_TITLE ] : '';

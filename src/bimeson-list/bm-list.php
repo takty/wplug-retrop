@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Admin)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-09
+ * @version 2018-03-13
  *
  */
 
@@ -144,11 +144,13 @@ class Bimeson_List {
 				$sub_tax = $this->_tax->term_to_taxonomy( $slug );
 				$this->_tax->register_sub_tax( $sub_tax, $sub_tax );
 
-				foreach ( $terms as $t ) {
-					$ret = wp_insert_term( $t, $sub_tax, [ 'slug' => $t ] );
-					if ( is_array( $ret ) ) {
-						if ( ! isset( $roots_subs[ $slug ] ) ) $roots_subs[ $slug ] = [];
-						$roots_subs[ $slug ][] = $t;
+				if ( $add_terms ) {
+					foreach ( $terms as $t ) {
+						$ret = wp_insert_term( $t, $sub_tax, [ 'slug' => $t ] );
+						if ( is_array( $ret ) ) {
+							if ( ! isset( $roots_subs[ $slug ] ) ) $roots_subs[ $slug ] = [];
+							$roots_subs[ $slug ][] = $t;
+						}
 					}
 				}
 			}
@@ -157,11 +159,13 @@ class Bimeson_List {
 			foreach ( $new_term as $slug => $terms ) {
 				$sub_tax = $this->_tax->term_to_taxonomy( $slug );
 
-				foreach ( $terms as $t ) {
-					$ret = wp_insert_term( $t, $sub_tax, [ 'slug' => $t ] );
-					if ( is_array( $ret ) ) {
-						if ( ! isset( $roots_subs[ $slug ] ) ) $roots_subs[ $slug ] = [];
-						$roots_subs[ $slug ][] = $t;
+				if ( taxonomy_exists( $sub_tax ) ) {
+					foreach ( $terms as $t ) {
+						$ret = wp_insert_term( $t, $sub_tax, [ 'slug' => $t ] );
+						if ( is_array( $ret ) ) {
+							if ( ! isset( $roots_subs[ $slug ] ) ) $roots_subs[ $slug ] = [];
+							$roots_subs[ $slug ][] = $t;
+						}
 					}
 				}
 			}

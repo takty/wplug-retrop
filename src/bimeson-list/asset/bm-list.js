@@ -3,7 +3,7 @@
  * Publication List File Loader
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-09
+ * @version 2018-03-13
  *
  */
 
@@ -141,9 +141,12 @@ document.addEventListener('DOMContentLoaded', function () {
 		var colCount = 0, colToKey = {};
 		for (var x = x0; x < x1; x += 1) {
 			var cell = sheet[XLSX.utils.encode_cell({c: x, r: y0})];
-			if (!cell || cell.w === '') break;
+			if (!cell || cell.w === '') {
+				colToKey[x] = false;
+			} else {
+				colToKey[x] = normalizeKey(cell.w + '', true);
+			}
 			colCount += 1;
-			colToKey[x] = normalizeKey(cell.w + '', true);
 		}
 		x1 = x0 + colCount;
 
@@ -153,6 +156,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			for (var x = x0; x < x1; x += 1) {
 				var cell = sheet[XLSX.utils.encode_cell({c: x, r: y})];
 				var key = colToKey[x];
+				if (key === false) continue;
 				if (key === KEY_BODY || key.indexOf(KEY_BODY + '_') === 0) {
 					if (cell && cell.h && cell.h.length > 0) {
 						var text = cell.h.replace(/<\/?span("[^"]*"|'[^']*'|[^'">])*>/g, '');  // remove automatically inserted 'span' tag.
