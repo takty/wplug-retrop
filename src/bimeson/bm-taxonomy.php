@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Taxonomy)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-07
+ * @version 2018-03-13
  *
  */
 

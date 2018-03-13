@@ -3,7 +3,7 @@
  * Publication List Filter (CSS)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-06
+ * @version 2018-03-13
  *
  */
 
@@ -19,8 +19,6 @@
 	position: relative;
 }
 
-.bm-list-filter-cbs {
-}
 .bm-list-filter-cbs label {
 	display: inline-flex;
 	align-items: center;
@@ -28,9 +26,11 @@
 	line-height: 1;
 	font-feature-settings: 'pkna' 1;
 }
+
 .bm-list-filter-cbs label input {
 	margin-right: 8px;
 }
+
 input[type=checkbox].tgl {
 	display: none;
 }

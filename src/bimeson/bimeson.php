@@ -6,12 +6,16 @@ namespace st;
  * Functions and Definitions for Bimeson
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-07
+ * @version 2018-03-13
  *
  */
 
 
+require_once __DIR__ . '/../../stinc/admin/page-template-admin.php';
+require_once __DIR__ . '/../../stinc/system/ordered-term.php';
 require_once __DIR__ . '/../../stinc/system/field.php';
+require_once __DIR__ . '/../../stinc/tag/template-tags.php';
+require_once __DIR__ . '/../../stinc/tag/url.php';
 require_once __DIR__ . '/bm-taxonomy.php';
 require_once __DIR__ . '/bm-admin.php';
 
@@ -36,20 +40,27 @@ class Bimeson {
 		return self::$_instance;
 	}
 
-	private $_additional_langs;
 	private $_tax   = null;
 	private $_admin = null;
+	private $_additional_langs;
+	private $_post_lang_tax;
+	private $_default_post_lang_slug;
 
 	private function __construct() {}
 
-	public function initialize( $additional_langs = [], $taxonomy = false, $sub_tax_base = false ) {
-		$this->_additional_langs = $additional_langs;
-		$this->_tax = new Bimeson_Taxonomy( self::PT_BIMESON, [ 'taxonomy' => '分類' ], $taxonomy, $sub_tax_base );
+	public function initialize( $additional_langs = [], $taxonomy = false, $sub_tax_base = false, $post_lang_tax = 'post_lang', $default_post_lang_slug = 'en' ) {
+		$this->_additional_langs       = $additional_langs;
+		$this->_post_lang_tax          = $post_lang_tax;
+		$this->_default_post_lang_slug = $default_post_lang_slug;
 
 		$this->_register_post_type();
 		$this->_add_shortcodes();
 
-		if ( is_admin() ) $this->_admin = new Bimeson_Admin( $this->_additional_langs, $this->_tax );
+		if ( $this->_post_lang_tax !== false ) {
+			register_taxonomy_for_object_type( $this->_post_lang_tax, Bimeson::PT_BIMESON );
+		}
+		$this->_tax = new Bimeson_Taxonomy( self::PT_BIMESON, [ 'taxonomy' => '分類' ], $taxonomy, $sub_tax_base );
+		if ( is_admin() ) $this->_admin = new Bimeson_Admin( $this->_tax, $this->_additional_langs, $post_lang_tax, $default_post_lang_slug );
 	}
 
 	private function _register_post_type() {
@@ -84,10 +95,13 @@ class Bimeson {
 			$tq = [];
 			$al = '';
 			if ( class_exists( '\st\Multilang' ) ) {
-				$ml = \st\Multilang::get_instance();
-				$al = $ml->get_site_lang();
-				if ( ! in_array( $al, $this->_additional_langs, true ) ) $al = '';
-				$tq[] = $ml->get_tax_query();
+				$pls = [ $this->_default_post_lang_slug ];
+				$sl = \st\Multilang::get_instance()->get_site_lang();
+				if ( in_array( $sl, $this->_additional_langs, true ) ) {
+					$al = $sl;
+					$pls[] = $al;
+				}
+				$tq[] = [ 'taxonomy' => $this->_post_lang_tax, 'field' => 'slug', 'terms' => $pls ];
 			}
 
 			foreach ( $rss as $rs ) {
@@ -95,11 +109,7 @@ class Bimeson {
 				$sub_tax = $this->_tax->term_to_taxonomy( $rs );
 				$tmp = str_replace( ' ', '', $atts[ $rs ] );
 				$slugs = explode( ',', $tmp );
-				$tq[] = [
-					'taxonomy' => $sub_tax,
-					'field'    => 'slug',
-					'terms'    => $slugs,
-				];
+				$tq[] = [ 'taxonomy' => $sub_tax, 'field' => 'slug', 'terms' => $slugs ];
 			}
 
 			$mq = [];
