@@ -1,8 +1,19 @@
+/**
+ *
+ * Bimeson List Page Admin
+ *
+ * @author Takuto Yanagida @ Space-Time Inc.
+ * @version 2018-03-14
+ *
+ */
+
+
 .bimeson-filter-key {
 	display: flex;
 	align-items: flex-start;
 	padding: 4px 0;
 }
+
 .bimeson_admin_edit_row { text-align: right; }
 
 .bimeson-filter-cbs {
@@ -10,9 +21,16 @@
 	flex-wrap: wrap;
 	padding: 0.25em 0 0;
 }
+
 .bimeson-filter-cbs label {
 	padding: 8px;
+
+	user-select: none;
+	-ms-user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
 }
+
 input[type=checkbox].tgl {
 	display: none;
 }

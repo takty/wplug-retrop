@@ -1,3 +1,13 @@
+/**
+ *
+ * Bimeson List Filter
+ *
+ * @author Takuto Yanagida @ Space-Time Inc.
+ * @version 2018-03-14
+ *
+ */
+
+
 @media (min-width: 900px) {
 	.bimeson-filter {
 		column-count: 2;
@@ -15,12 +25,16 @@
 	padding: 4px 0;
 }
 
-.bimeson-filter-cbs {
-}
 .bimeson-filter-cbs label {
 	padding: 8px;
 	display: inline-block;
+
+	user-select: none;
+	-ms-user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
 }
+
 input[type=checkbox].tgl {
 	display: none;
 }
@@ -74,4 +88,12 @@ input[type=checkbox].tgl {
 
 .tgl-light:checked + .tgl-btn {
 	background: #b3cefb;
+}
+
+.bimeson-content.stile h3+:not(.alignright):not(.alignleft)[data-count='0'],
+.bimeson-content.stile h4+:not(.alignright):not(.alignleft)[data-count='0'],
+.bimeson-content.stile h5+:not(.alignright):not(.alignleft)[data-count='0'],
+.bimeson-content.stile h6+:not(.alignright):not(.alignleft)[data-count='0'],
+.bimeson-content.stile *[data-count='0'] {
+	margin-top: 0;
 }

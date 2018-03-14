@@ -1,9 +1,9 @@
 /**
  *
- * Publication File Loader
+ * Bimeson List Page Admin
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-09
+ * @version 2018-03-14
  *
  */
 

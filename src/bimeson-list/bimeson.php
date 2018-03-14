@@ -6,7 +6,7 @@ namespace st;
  * Functions and Definitions for Bimeson
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-13
+ * @version 2018-03-14
  *
  */
 
@@ -54,31 +54,8 @@ class Bimeson {
 	private function _add_shortcodes() {
 		add_shortcode( 'publication', function ( $atts, $content = null ) {
 			global $post;
-
-			$filter_state       = json_decode( get_post_meta( $post->ID, Bimeson_Admin::FLD_JSON_PARAMS, true ), true );
-			$sort_by_year_first = get_post_meta( $post->ID, Bimeson_Admin::FLD_SORT_BY_DATE_FIRST, true ) === 'true';
-			$show_filter        = get_post_meta( $post->ID, Bimeson_Admin::FLD_SHOW_FILTER, true );
-			$temp               = get_post_meta( $post->ID, Bimeson_Admin::FLD_COUNT, true );
-			$count              = ( empty( $temp ) || (int) $temp < 1 ) ? false : (int) $temp;
-			$temp               = get_post_meta( $post->ID, Bimeson_Admin::FLD_YEAR_START, true );
-			$year_start         = ( empty( $temp ) || (int) $temp < 1970 || (int) $temp > 3000 ) ? false : (int) $temp;
-			$temp               = get_post_meta( $post->ID, Bimeson_Admin::FLD_YEAR_END, true );
-			$year_end           = ( empty( $temp ) || (int) $temp < 1970 || (int) $temp > 3000 ) ? false : (int) $temp;
-
-			$items = $this->_get_list_items( $post->ID );
 			ob_start();
-			if ( $show_filter === 'true' ) :
-?>
-			<div class="bimeson-filter">
-				<?php $this->the_filter( $filter_state, $year_start, $year_end ); ?>
-			</div>
-<?php
-			endif;
-?>
-			<div class="bimeson-content stile">
-				<?php $this->the_list( $items, $filter_state, $year_start, $year_end, $count, $sort_by_year_first ); ?>
-			</div>
-<?php
+			$this->_echo_filter_list( $post->ID );
 			$ret = ob_get_contents();
 			ob_end_clean();
 			return $ret;
@@ -112,8 +89,55 @@ class Bimeson {
 		$this->_admin->save_mata_box( $post_id );
 	}
 
-	public function the_filter( $filter_state, $year_start, $year_end ) {
-		$this->_tax->the_filter( $filter_state, $year_start, $year_end );
+	public function the_list_section() {
+		global $post;
+?>
+		<section>
+			<div class="section-inner">
+				<div class="entry-content">
+					<?php $this->_echo_filter_list( $post->ID ); ?>
+				</div>
+			</div>
+		</section>
+<?php
+	}
+
+
+	// -------------------------------------------------------------------------
+
+	private function _echo_filter_list( $post_id ) {
+		$filter_state       = json_decode( get_post_meta( $post_id, Bimeson_Admin::FLD_JSON_PARAMS, true ), true );
+		$sort_by_year_first = get_post_meta( $post_id, Bimeson_Admin::FLD_SORT_BY_DATE_FIRST, true ) === 'true';
+		$show_filter        = get_post_meta( $post_id, Bimeson_Admin::FLD_SHOW_FILTER, true );
+		$temp               = get_post_meta( $post_id, Bimeson_Admin::FLD_COUNT, true );
+		$count              = ( empty( $temp ) || (int) $temp < 1 ) ? false : (int) $temp;
+		$temp               = get_post_meta( $post_id, Bimeson_Admin::FLD_YEAR_START, true );
+		$year_start         = ( empty( $temp ) || (int) $temp < 1970 || (int) $temp > 3000 ) ? false : (int) $temp;
+		$temp               = get_post_meta( $post_id, Bimeson_Admin::FLD_YEAR_END, true );
+		$year_end           = ( empty( $temp ) || (int) $temp < 1970 || (int) $temp > 3000 ) ? false : (int) $temp;
+
+		$items = $this->_get_list_items( $post_id );
+		$years_exist = [];
+		if ( is_array( $items ) ) {
+			$this->_sort_list_items( $items, $sort_by_year_first );
+			if ( $filter_state !== false ) {
+				$items = $this->_filter_list_items( $items, $filter_state, $year_start, $year_end, $count, $years_exist );
+			}
+		}
+		if ( $show_filter === 'true' ) {
+			echo '<div class="bimeson-filter">';
+			$this->_tax->the_filter( $filter_state, $year_start, $year_end, $years_exist );
+			echo '</div>';
+		}
+		echo '<div class="bimeson-content stile">';
+		if ( is_array( $items ) ) {
+			if ( $count === false ) {
+				$this->_the_list( $items, $sort_by_year_first );
+			} else {
+				$this->_echo_list( $items, \st\Multilang::get_instance()->get_site_lang() );
+			}
+		}
+		echo '</div>';
 	}
 
 
@@ -125,7 +149,7 @@ class Bimeson {
 		return json_decode( $items_json, true );
 	}
 
-	private function _sort_items( array &$items, $sort_by_year_first ) {
+	private function _sort_list_items( array &$items, $sort_by_year_first ) {
 		$this->_sort_by_year_first = $sort_by_year_first;
 
 		$rs_to_slugs       = $this->_tax->get_root_slugs_to_sub_slugs();
@@ -198,49 +222,53 @@ class Bimeson {
 
 	// -------------------------------------------------------------------------
 
-	public function the_list_section() {
-		global $post;
-
-		$filter_state       = json_decode( get_post_meta( $post->ID, Bimeson_Admin::FLD_JSON_PARAMS, true ), true );
-		$sort_by_year_first = get_post_meta( $post->ID, Bimeson_Admin::FLD_SORT_BY_DATE_FIRST, true ) === 'true';
-		$show_filter        = get_post_meta( $post->ID, Bimeson_Admin::FLD_SHOW_FILTER, true );
-		$temp               = get_post_meta( $post->ID, Bimeson_Admin::FLD_COUNT, true );
-		$count              = ( empty( $temp ) || (int) $temp < 1 ) ? false : (int) $temp;
-		$temp               = get_post_meta( $post->ID, Bimeson_Admin::FLD_YEAR_START, true );
-		$year_start         = ( empty( $temp ) || (int) $temp < 1970 || (int) $temp > 3000 ) ? false : (int) $temp;
-		$temp               = get_post_meta( $post->ID, Bimeson_Admin::FLD_YEAR_END, true );
-		$year_end           = ( empty( $temp ) || (int) $temp < 1970 || (int) $temp > 3000 ) ? false : (int) $temp;
-
-		$items = $this->_get_list_items( $post->ID );
-?>
-			<section>
-				<div class="section-inner">
-					<div class="entry-content">
-<?php
-		if ( $show_filter === 'true' ) :
-?>
-						<div class="bimeson-filter">
-							<?php $this->the_filter( $filter_state, $year_start, $year_end ); ?>
-						</div>
-<?php
-		endif;
-?>
-						<div class="bimeson-content stile">
-							<?php $this->the_list( $items, $filter_state, $year_start, $year_end, $count, $sort_by_year_first ); ?>
-						</div>
-					</div>
-				</div>
-			</section>
-<?php
-	}
-
-	public function the_list( $items, $filter_state = false, $year_start = false, $year_end = false, $count = false, $sort_by_year_first = false ) {
-		if ( ! is_array( $items ) ) return;
+	private function _filter_list_items( $items, $filter_state, $year_start, $year_end, $count, &$years_exist ) {
+		$ret = [];
+		$years = [];
 		$sl = \st\Multilang::get_instance()->get_site_lang();
 
-		$this->_sort_items( $items, $sort_by_year_first );
-		if ( $filter_state !== false ) $items = $this->_filter_items( $items, $filter_state, $year_start, $year_end, $count, $sl );
+		$do_year_filter = ( $year_start !== false || $year_end !== false );
+		if ( $year_start === false ) $year_start = 0;
+		else $year_start = (int) str_pad( $year_start . '', 8, '0', STR_PAD_RIGHT );
+		if ( $year_end === false ) $year_end = intval( '99999999' );
+		else $year_end = (int) str_pad( $year_end . '', 8, '9', STR_PAD_RIGHT );
 
+		foreach ( $items as $item ) {
+			if ( $do_year_filter ) {
+				if ( ! isset( $item[ self::FLD_DATE_NUM ] ) ) continue;  // next item
+				$date = (int) $item[ self::FLD_DATE_NUM ];
+				if ( $date < $year_start || $year_end < $date ) continue;  // next item
+			}
+			foreach ( $filter_state as $rs => $slugs ) {
+				if ( ! isset( $item[ $rs ] ) ) continue 2;  // next item
+				$vs = $item[ $rs ];
+				foreach ( $slugs as $s ) {
+					if ( in_array( $s, $vs, true ) ) continue 2;  // next condition
+				}
+				continue 2;  // next item
+			}
+
+			if ( isset( $item[ self::FLD_BODY . "_$sl" ] ) && ! empty( $item[ self::FLD_BODY . "_$sl" ] ) ) {
+			} else if ( isset( $item[ self::FLD_BODY ] ) && ! empty( $item[ self::FLD_BODY ] ) ) {
+			} else {
+				continue;  // next item
+			}
+			$ret[] = $item;
+			if ( isset( $item[ self::FLD_DATE_NUM ] ) ) {
+				$years[ substr( $item[ self::FLD_DATE_NUM ], 0, 4 ) ] = 1;
+			}
+			if ( $count !== false && count( $ret ) === $count ) break;
+		}
+		foreach ( $years as $idx => $val ) $years_exist[] = $idx;
+		sort( $years_exist );
+		return $ret;
+	}
+
+
+	// -------------------------------------------------------------------------
+
+	private function _the_list( $items, $sort_by_year_first = false ) {
+		$sl = \st\Multilang::get_instance()->get_site_lang();
 		$rss = $this->_tax->get_root_slugs();
 		$rs_to_depth  = $this->_tax->get_root_slugs_to_sub_depths();
 
@@ -257,20 +285,19 @@ class Bimeson {
 		$buf = [];
 		$prev_cat_key = array_pad( [], $hier_size_orig, '' );
 
-		if ( $count !== false ) {
-			$this->_echo_list( $items, $sl );
-			return;
-		}
 		$cur_year = '';
 		foreach ( $items as $item ) {
 			if ( $sort_by_year_first && isset( $item[ self::FLD_DATE_NUM ] ) ) {
 				$year = substr( $item[ self::FLD_DATE_NUM ], 0, 4 );
 				if ( $cur_year !== $year ) {
+					if ( ! empty( $buf ) ) {
+						$this->_echo_list( $buf, $sl );
+						$buf = [];
+					}
 					$this->_echo_heading_year( 2, $item[ self::FLD_DATE_NUM ] );
 					$cur_year = $year;
 				}
 			}
-
 			$cat_key = $this->_get_cat_key( $item, $hier_size_orig );
 			$hier = -1;
 			$hier_size = $hier_size_orig;
@@ -308,43 +335,6 @@ class Bimeson {
 		if ( ! empty( $buf ) ) $this->_echo_list( $buf, $sl );
 	}
 
-	private function _filter_items( $items, $filter_state, $year_start, $year_end, $count, $sl ) {
-		$ret = [];
-		$do_year_filter = ( $year_start !== false || $year_end !== false );
-		if ( $year_start === false ) $year_start = 0;
-		else $year_start = (int) str_pad( $year_start . '', 8, '0', STR_PAD_RIGHT );
-		if ( $year_end === false ) $year_end = intval( '99999999' );
-		else $year_end = (int) str_pad( $year_end . '', 8, '9', STR_PAD_RIGHT );
-
-		foreach ( $items as $item ) {
-			if ( $do_year_filter ) {
-				if ( ! isset( $item[ self::FLD_DATE_NUM ] ) ) continue;
-				$date = (int) $item[ self::FLD_DATE_NUM ];
-				if ( $date < $year_start || $year_end < $date ) continue;
-			}
-			foreach ( $filter_state as $rs => $slugs ) {
-				if ( ! isset( $item[ $rs ] ) ) {
-					continue 2;  // next item
-				}
-				$vs = $item[ $rs ];
-				foreach ( $slugs as $s ) {
-					if ( in_array( $s, $vs, true ) ) continue 2;  // next condition
-				}
-				continue 2;  // next item
-			}
-
-			if ( isset( $item[ self::FLD_BODY . "_$sl" ] ) && ! empty( $item[ self::FLD_BODY . "_$sl" ] ) ) {
-			} else if ( isset( $item[ self::FLD_BODY ] ) && ! empty( $item[ self::FLD_BODY ] ) ) {
-			} else {
-				continue;
-			}
-
-			$ret[] = $item;
-			if ( $count !== false && count( $ret ) === $count ) break;
-		}
-		return $ret;
-	}
-
 	private function _get_cat_key( $item, $hier_size ) {
 		$cat_key = explode( ',', $item[ self::FLD_CAT_KEY ] );
 		if ( count( $cat_key ) !== $hier_size ) {  // for invalid 'sortkey'
@@ -377,11 +367,12 @@ class Bimeson {
 	}
 
 	private function _echo_heading_year( $level, $date_num ) {
+		$year = substr( $date_num, 0, 4 );
 		if ( class_exists( '\st\Multilang' ) ) {
-			$date = date_create_from_format( 'Y', substr( $date_num, 0, 4 ) );
+			$date = date_create_from_format( 'Y', $year );
 			$_name = esc_html( date_format( $date, \st\Multilang::get_instance()->get_date_format( 'year' ) ) );
 		} else {
-			$_name = esc_html( substr( $date_num, 0, 4 ) );
+			$_name = esc_html( $year );
 		}
 		$tag = ( $level <= 6 ) ? "h$level" : 'div';
 		$data_depth = $level - 1;
@@ -429,7 +420,13 @@ class Bimeson {
 		$_cls = esc_attr( implode( ' ', $this->_make_cls_array( $item ) ) );
 		$_catkey = isset( $item['__catkey__'] ) ? esc_attr( $item['__catkey__'] ) : '';
 
-		echo "<li class=\"$_cls\" data-catkey=\"$_catkey\"><div>";
+		if ( isset( $item[ self::FLD_DATE_NUM ] ) ) {
+			$_year = esc_attr( substr( '' . $item[ self::FLD_DATE_NUM ], 0, 4 ) );
+		} else {
+			$_year = '';
+		}
+
+		echo "<li class=\"$_cls\" data-year=\"$_year\" data-catkey=\"$_catkey\"><div>";
 		echo "$body";
 		echo "$_link$_doi</div></li>\n";
 	}

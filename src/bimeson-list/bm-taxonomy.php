@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Taxonomy)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-09
+ * @version 2018-03-14
  *
  */
 
@@ -18,6 +18,12 @@ class Bimeson_Taxonomy {
 
 	const KEY_LAST_CAT_OMITTED = '_bimeson_last_cat_omitted';
 	const KEY_IS_HIDDEN        = '_bimeson_is_hidden';
+
+	const CLS_FILTER_SELECT = 'bimeson-filter-select';
+	const KEY_YEAR          = '_year';
+	const VAL_YEAR_ALL      = 'all';
+	const QVAR_YEAR         = 'bm-year';
+	const DS_KEY_YEAR       = 'year';
 
 	private $_post_type;
 	private $_labels;
@@ -92,8 +98,7 @@ class Bimeson_Taxonomy {
 			'sort'               => true,
 			'show_admin_column'  => false,
 			'show_in_quick_edit' => false,
-			'meta_box_cb'        => false,
-
+			'meta_box_cb'        => false
 		] );
 		$this->_root_terms = false;
 		$this->_sub_tax_to_terms[ $tax ] = false;
@@ -162,7 +167,7 @@ class Bimeson_Taxonomy {
 		return $terms;
 	}
 
-	public function the_filter( $filter_state = false, $year_start = false, $year_end = false ) {
+	public function the_filter( $filter_state = false, $year_start = false, $year_end = false, $years_exist = [] ) {
 		$slug_to_terms = $this->get_root_slugs_to_sub_terms( false, true );
 
 		if ( is_admin() ) {
@@ -171,12 +176,38 @@ class Bimeson_Taxonomy {
 		} else {
 			$state = $this->get_filter_state_from_qvar();
 		}
+		if ( ! empty( $years_exist ) ) $this->_echo_year_select( $years_exist, $state );
+
 		foreach ( $slug_to_terms as $slug => $terms ) {
 			$fsset = isset( $filter_state[ $slug ] );
 			if ( ! $fsset || 1 < count( $filter_state[ $slug ] ) ) {
 				$this->_echo_tax_checkboxes( $slug, $terms, $state, $fsset ? $filter_state[ $slug ] : false );
 			}
 		}
+	}
+
+	private function _echo_year_select( $years, $state ) {
+		$val = $state[ self::KEY_YEAR ];
+	?>
+		<div class="bimeson-filter-key" data-key="<?php echo self::KEY_YEAR ?>">
+			<div class="bimeson-filter-key-inner">
+				<select name="<?php echo self::KEY_YEAR ?>" class="<?php echo self::CLS_FILTER_SELECT ?>">
+					<option value="<?php echo self::VAL_YEAR_ALL ?>"><?php esc_html_e( 'All' ) ?></option>
+	<?php
+		foreach ( $years as $y ) {
+			if ( class_exists( '\st\Multilang' ) ) {
+				$date = date_create_from_format( 'Y', $y );
+				$_name = esc_html( date_format( $date, \st\Multilang::get_instance()->get_date_format( 'year' ) ) );
+			} else {
+				$_name = esc_html( $y );
+			}
+			echo "<option value=\"$y\"" . ( ( (int) $y === (int) $val ) ? ' selected' : '' ) . ">$_name</option>";
+		}
+	?>
+				</select>
+			</div>
+		</div>
+	<?php
 	}
 
 	private function _echo_tax_checkboxes( $root_slug, $terms, $state, $filtered ) {
@@ -231,6 +262,8 @@ class Bimeson_Taxonomy {
 			$temp = empty( $val ) ? [] : explode( ',', $val );
 			$ret[ $slug ] = $temp;
 		}
+		$val = get_query_var( self::QVAR_YEAR );
+		$ret[ self::KEY_YEAR ] = $val;
 		return $ret;
 	}
 
@@ -367,6 +400,7 @@ class Bimeson_Taxonomy {
 		foreach ( $roots as $r ) {
 			$query_vars[] = $this->_get_query_var_name( $r->slug );
 		}
+		$query_vars[] = self::QVAR_YEAR;
 		return $query_vars;
 	}
 

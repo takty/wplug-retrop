@@ -1,27 +1,36 @@
 /**
  *
- * Publication List Filter
+ * Bimeson List Filter
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-09
+ * @version 2018-03-14
  *
  */
 
 
 document.addEventListener('DOMContentLoaded', function () {
 
-	var SEL_ITEM_ALL        = '.bimeson-content > *';
-	var SEL_FILTER_KEY      = '.bimeson-filter-key';
-	var SEL_FILTER_SWITCH   = '.bimeson-filter-switch';
-	var SEL_FILTER_CHECKBOX = 'input:not(.bimeson-filter-switch)';
+	const SEL_ITEM_ALL        = '.bimeson-content > *';
+	const SEL_FILTER_KEY      = '.bimeson-filter-key';
+	const SEL_FILTER_SWITCH   = '.bimeson-filter-switch';
+	const SEL_FILTER_CHECKBOX = 'input:not(.bimeson-filter-switch)';
 
-	var keyToSwAndCbs = {};
+	const SEL_FILTER_SELECT = '.bimeson-filter-select';
+	const KEY_YEAR          = '_year';
+	const VAL_YEAR_ALL      = 'all';
+	const QVAR_YEAR         = 'bm-year';
+	const DS_KEY_YEAR       = 'year';
+
+	var keyToSwAndCbs = {}, yearSelect = null;
 	var fkElms = document.querySelectorAll(SEL_FILTER_KEY);
 	for (var i = 0; i < fkElms.length; i += 1) {
 		var elm = fkElms[i];
 		var sw = elm.querySelector(SEL_FILTER_SWITCH);
 		var cbs = elm.querySelectorAll(SEL_FILTER_CHECKBOX);
-		keyToSwAndCbs[elm.dataset.key] = [sw, cbs];
+		if (sw && cbs) keyToSwAndCbs[elm.dataset.key] = [sw, cbs];
+		if (elm.dataset.key === KEY_YEAR) {
+			yearSelect = elm.querySelector(SEL_FILTER_SELECT);
+		}
 	}
 
 	for (var key in keyToSwAndCbs) {
@@ -29,27 +38,30 @@ document.addEventListener('DOMContentLoaded', function () {
 		var cbs = keyToSwAndCbs[key][1];
 		assignEventListener(sw, cbs, update);
 	}
+	if (yearSelect) assignEventListenerSelect(yearSelect);
 
 	var allElms = document.querySelectorAll(SEL_ITEM_ALL);
 	update();
 
 	function update() {
 		var keyToVals = getKeyToVals(keyToSwAndCbs);
-		filterLists(allElms, keyToVals);
+		var year = (yearSelect && yearSelect.value !== VAL_YEAR_ALL) ? yearSelect.value : false;
+		filterLists(allElms, keyToVals, year);
 		countUpItems(allElms);
-		setUrlParams(keyToSwAndCbs);
+		setUrlParams(keyToSwAndCbs, yearSelect);
 	}
 
 
 	// -------------------------------------------------------------------------
 
-	function setUrlParams(keyToSwAndCbs) {
+	function setUrlParams(keyToSwAndCbs, yearSelect) {
 		var ps = [];
 		for (var key in keyToSwAndCbs) {
 			var sw = keyToSwAndCbs[key][0];
 			var cbs = keyToSwAndCbs[key][1];
 			if (sw.checked) ps.push('bm-cat-' + key + '=' + concatCheckedQvals(cbs));
 		}
+		if (yearSelect && yearSelect.value !== VAL_YEAR_ALL) ps.push('bm-year=' + yearSelect.value);
 		if (ps.length > 0) {
 			var ret = '?' + ps.join('&');
 			history.replaceState('', '', ret);
@@ -84,6 +96,12 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	}
 
+	function assignEventListenerSelect(yearSelect) {
+		yearSelect.addEventListener('change', function() {
+			update();
+		});
+	}
+
 	function isCheckedAtLeastOne(cbs) {
 		for (var i = 0; i < cbs.length; i += 1) {
 			if (cbs[i].checked) return true;
@@ -112,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	// -------------------------------------------------------------------------
 
-	function filterLists(elms, fkeyToVals) {
+	function filterLists(elms, fkeyToVals, year) {
 		for (var j = 0, J = elms.length; j < J; j += 1) {
 			var elm = elms[j];
 			if (elm.tagName !== 'OL' && elm.tagName !== 'UL') continue;
@@ -120,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function () {
 			var showCount = 0;
 			for (var i = 0, I = lis.length; i < I; i += 1) {
 				var li = lis[i];
-				var show = isMatch(li, fkeyToVals);
+				var show = isMatch(li, fkeyToVals, year);
 				li.style.display = show ? '' : 'none';
 				if (show) showCount += 1;
 			}
@@ -128,7 +146,10 @@ document.addEventListener('DOMContentLoaded', function () {
 		}
 	}
 
-	function isMatch(itemElm, fkeyToVals) {
+	function isMatch(itemElm, fkeyToVals, year) {
+		if (year !== false) {
+			if (itemElm.dataset[DS_KEY_YEAR] !== year) return false;
+		}
 		for (var key in fkeyToVals) {
 			var fvals = fkeyToVals[key];
 			var contains = false;
