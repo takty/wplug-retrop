@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Taxonomy)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-14
+ * @version 2018-03-20
  *
  */
 
@@ -29,6 +29,7 @@ class Bimeson_Taxonomy {
 	private $_labels;
 	private $_tax_root;
 	private $_tax_sub_base;
+	private $_year_formatter = null;
 
 	private $_old_taxonomy = [];
 	private $_old_terms = [];
@@ -59,6 +60,10 @@ class Bimeson_Taxonomy {
 		add_action( "edit_terms",                          [ $this, '_cb_edit_taxonomy' ], 10, 2 );
 		add_action( "edited_{$this->_tax_root}",           [ $this, '_cb_edited_taxonomy' ], 10, 2 );
 		add_filter( 'query_vars',                          [ $this, '_cb_query_vars' ] );
+	}
+
+	public function set_year_formatter( $func ) {
+		$this->_year_formatter = $func;
 	}
 
 	private function _get_root_terms() {
@@ -192,10 +197,13 @@ class Bimeson_Taxonomy {
 		<div class="bimeson-filter-key" data-key="<?php echo self::KEY_YEAR ?>">
 			<div class="bimeson-filter-key-inner">
 				<select name="<?php echo self::KEY_YEAR ?>" class="<?php echo self::CLS_FILTER_SELECT ?>">
-					<option value="<?php echo self::VAL_YEAR_ALL ?>"><?php esc_html_e( 'All' ) ?></option>
+					<option value="<?php echo self::VAL_YEAR_ALL ?>"><?php esc_html_e( $this->_labels['year_selector'] ) ?></option>
 	<?php
 		foreach ( $years as $y ) {
-			if ( class_exists( '\st\Multilang' ) ) {
+			if ( is_callable( $this->_year_formatter ) ) {
+				$func = $this->_year_formatter;
+				$_name = esc_html( $func( (int) $y ) );
+			} else if ( class_exists( '\st\Multilang' ) ) {
 				$date = date_create_from_format( 'Y', $y );
 				$_name = esc_html( date_format( $date, \st\Multilang::get_instance()->get_date_format( 'year' ) ) );
 			} else {
@@ -211,6 +219,12 @@ class Bimeson_Taxonomy {
 	}
 
 	private function _echo_tax_checkboxes( $root_slug, $terms, $state, $filtered ) {
+		$t = get_term_by( 'slug', $root_slug, $this->_tax_root );
+		if ( class_exists( '\st\Multilang' ) ) {
+			$_cat_name = esc_html( \st\Multilang::get_instance()->get_term_name( $t ) );
+		} else {
+			$_cat_name = esc_html( $t->name );
+		}
 		$_slug = esc_attr( $root_slug );
 		$qvals = $state[ $root_slug ];
 	?>
@@ -219,6 +233,7 @@ class Bimeson_Taxonomy {
 				<input type="checkbox" class="bimeson-filter-switch tgl tgl-light" id="<?php echo $_slug ?>" name="<?php echo $_slug ?>" <?php if ( ! empty( $qvals ) ) echo 'checked' ?> value="1"></input>
 				<label class="tgl-btn" for="<?php echo $_slug ?>"></label>
 				<div class="bimeson-filter-cbs">
+					<div class="bimeson-filter-cat"><?php echo $_cat_name ?></div>
 	<?php
 		foreach ( $terms as $t ) :
 			$_id  = esc_attr( $this->sub_term_to_id( $root_slug, $t ) );
@@ -357,7 +372,7 @@ class Bimeson_Taxonomy {
 	public function _cb_taxonomy_edit_form_fields( $term, $taxonomy ) {
 		self::_boolean_form( $term, self::KEY_LAST_CAT_OMITTED, $this->_labels['omit_last_cat'] );
 		if ( $term->parent === '0' ) {
-			self::_boolean_form( $term, self::KEY_IS_HIDDEN, $this->_labels['hide from view'] );
+			self::_boolean_form( $term, self::KEY_IS_HIDDEN, $this->_labels['hide_from_view'] );
 		}
 	}
 

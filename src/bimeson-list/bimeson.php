@@ -6,7 +6,7 @@ namespace st;
  * Functions and Definitions for Bimeson
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-14
+ * @version 2018-03-20
  *
  */
 
@@ -42,13 +42,28 @@ class Bimeson {
 
 	private function __construct() {}
 
-	public function initialize( $key, $taxonomy = false, $sub_tax_base = false ) {
+	public function initialize( $key, $taxonomy = false, $sub_tax_base = false, $is_fiscal_year = false ) {
 		$this->_key  = $key;
-		$this->_tax  = new Bimeson_Taxonomy( Bimeson_List::PT, [ 'taxonomy' => '分類', 'omit_last_cat' => '一番最後の分類を省略', 'hide from view' => '閲覧画面から隠す' ], $taxonomy, $sub_tax_base );
+		$this->_tax  = new Bimeson_Taxonomy( Bimeson_List::PT, [ 'taxonomy' => '分類', 'omit_last_cat' => '一番最後の分類を省略', 'hide_from_view' => '閲覧画面から隠す', 'year_selector' => 'Fiscal Year' ], $taxonomy, $sub_tax_base );
 		$this->_list = new Bimeson_List( $this->_tax );
 
 		$this->_add_shortcodes();
 		if ( is_admin() ) $this->_admin = new Bimeson_Admin( $this, $this->_tax );
+
+		if ( $is_fiscal_year ) {
+			$this->_tax->set_year_formatter( function ( $y ) {
+				if ( class_exists( '\st\Multilang' ) ) {
+					$sl = \st\Multilang::get_instance()->get_site_lang();
+					if ( $sl === 'ja' ) {
+						return $y . '年度';
+					} else {
+						return 'FY ' . $y;
+					}
+				} else {
+					return $y;
+				}
+			} );
+		}
 	}
 
 	private function _add_shortcodes() {
@@ -75,6 +90,10 @@ class Bimeson {
 			wp_enqueue_style(  'bimeson', $url_to . '/asset/bm-filter.min.css' );
 			wp_enqueue_script( 'bimeson', $url_to . '/asset/bm-filter.min.js' );
 		}
+	}
+
+	public function get_taxonomy() {
+		return $this->_tax->get_taxonomy();
 	}
 
 	public function get_sub_taxonomies() {
