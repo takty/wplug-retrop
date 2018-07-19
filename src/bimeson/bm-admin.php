@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Admin)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-13
+ * @version 2018-07-19
  *
  */
 
@@ -103,7 +103,7 @@ class Bimeson_Admin {
 		foreach ( $this->_additional_langs as $al ) {
 			\st\field\save_rich_editor_meta_box( $post_id, "_post_content_$al" );
 		}
-		$date = get_post_meta( $post_id, Bimeson::FLD_DATE, true );
+		$date = isset( $_POST[ Bimeson::FLD_DATE ] ) ? $_POST[ Bimeson::FLD_DATE ] : '';
 		$date_num = str_pad( str_replace( '-', '', \st\field\normalize_date( $date ) ), 8, '9', STR_PAD_RIGHT );
 		update_post_meta( $post_id, Bimeson::FLD_DATE_NUM, $date_num );
 
