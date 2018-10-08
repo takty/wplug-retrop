@@ -113,7 +113,7 @@ class Bimeson_List {
 			if ( $add_tax || $add_term ) $this->_process_terms( $items, $add_tax, $add_term );
 
 			$this->_process_items( $items );
-			$json_items = json_encode( $items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+			$json_items = json_encode( $items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_QUOT );
 			update_post_meta( $post_id, self::FLD_ITEMS, $json_items );
 		}
 	}
