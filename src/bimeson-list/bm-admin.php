@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Admin)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-09
+ * @version 2018-10-08
  *
  */
 
@@ -122,9 +122,10 @@ class Bimeson_Admin {
 		<select id="<?php echo self::FLD_LIST_ID ?>" name="<?php echo self::FLD_LIST_ID ?>">
 <?php
 		foreach ( $bls as $bl ) {
+			$id = $bl->ID;
 			$_title = esc_html( $bl->post_title );
-			$_id = $bl->ID;
-			echo "<option value=\"$_id\" " . selected( $cur_id, $bl->ID, false ) . ">$_title</option>";
+			if ( empty( $_title ) ) $_title = '#' . esc_html( $id );
+			echo "<option value=\"$id\" " . selected( $cur_id, $id, false ) . ">$_title</option>";
 		}
 ?>
 		</select>
