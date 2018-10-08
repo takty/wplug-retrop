@@ -108,8 +108,8 @@ class Bimeson_List {
 		if ( $json_items !== self::NOT_MODIFIED ) {
 			$items = json_decode( stripslashes( $json_items ), true );
 
-			$add_tax  = $_POST[ self::FLD_ADD_TAX ]  === 'true';
-			$add_term = $_POST[ self::FLD_ADD_TERM ] === 'true';
+			$add_tax  = isset( $_POST[ self::FLD_ADD_TAX  ] ) && ( $_POST[ self::FLD_ADD_TAX  ] === 'true' );
+			$add_term = isset( $_POST[ self::FLD_ADD_TERM ] ) && ( $_POST[ self::FLD_ADD_TERM ] === 'true' );
 			if ( $add_tax || $add_term ) $this->_process_terms( $items, $add_tax, $add_term );
 
 			$this->_process_items( $items );
