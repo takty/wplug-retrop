@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Admin)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-13
+ * @version 2018-10-08
  *
  */
 
@@ -53,10 +53,34 @@ class Bimeson_List {
 	// -------------------------------------------------------------------------
 
 	public function _cb_admin_menu() {
+		add_action( 'admin_print_scripts', [ $this, '_cb_enqueue_script_media' ] );
 		if ( \st\page_template_admin\is_post_type( self::PT ) ) {
-			$this->_enqueue_script();
+			$this->_cb_enqueue_script();
 			add_meta_box( 'bimeson_mb', self::LBL_POST_TYPE, [ $this, '_cb_output_html_list' ], self::PT, 'normal', 'high' );
 		}
+	}
+
+	public function _cb_enqueue_script( $url_to = false ) {
+		global $pagenow;
+		if ( $pagenow !== 'post.php' && $pagenow !== 'post-new.php' ) return;
+		if ( ! \st\page_template_admin\is_post_type( self::PT ) ) return;
+
+		if ( $url_to === false ) $url_to = \st\get_file_uri( __DIR__ );
+		$url_to = untrailingslashit( $url_to );
+
+		\st\media_picker\enqueue_script_for_admin( $url_to . '/../../stinc/admin/' );
+		wp_enqueue_style(  self::NS, $url_to . '/asset/bm-list.min.css' );
+		wp_enqueue_script( self::NS, $url_to . '/asset/bm-list.min.js' );
+		wp_enqueue_script( 'xlsx', $url_to . '/asset/xlsx.full.min.js' );
+	}
+
+	public function _cb_enqueue_script_media() {
+		global $pagenow;
+		if ( $pagenow !== 'post.php' && $pagenow !== 'post-new.php' ) return;
+		if ( ! \st\page_template_admin\is_post_type( self::PT ) ) return;
+
+		$post_id = \st\page_template_admin\get_post_id();
+		wp_enqueue_media( [ 'post' => $post_id ] );
 	}
 
 	public function _cb_output_html_list() {
@@ -96,23 +120,6 @@ class Bimeson_List {
 
 
 	// -------------------------------------------------------------------------
-
-	private function _enqueue_script( $url_to = false ) {
-		global $pagenow;
-		if ( $pagenow !== 'post.php' && $pagenow !== 'post-new.php' ) return;
-		if ( ! \st\page_template_admin\is_post_type( self::PT ) ) return;
-
-		if ( $url_to === false ) $url_to = \st\get_file_uri( __DIR__ );
-		$url_to = untrailingslashit( $url_to );
-
-		\st\media_picker\enqueue_script_for_admin( $url_to . '/../../stinc/admin/' );
-		wp_enqueue_style(  self::NS, $url_to . '/asset/bm-list.min.css' );
-		wp_enqueue_script( self::NS, $url_to . '/asset/bm-list.min.js' );
-		wp_enqueue_script( 'xlsx', $url_to . '/asset/xlsx.full.min.js' );
-
-		$post_id = \st\page_template_admin\get_post_id();
-		wp_enqueue_media( [ 'post' => $post_id ] );
-	}
 
 	private function _process_terms( $items, $add_taxonomies = false, $add_terms = false ) {
 		$roots_subs = $this->_tax->get_root_slugs_to_sub_slugs();
