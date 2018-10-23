@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Admin)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-10-08
+ * @version 2018-10-23
  *
  */
 
@@ -21,16 +21,18 @@ class Bimeson_Admin {
 	const FLD_JSON_PARAMS = '_bimeson_json_params';
 	const FLD_LIST_ID     = '_bimeson_list_id';
 
-	const FLD_COUNT              = '_bimeson_count';
-	const FLD_SORT_BY_DATE_FIRST = '_bimeson_sort_by_date_first';
-	const FLD_SHOW_FILTER        = '_bimeson_show_filter';
-	const FLD_YEAR_START         = '_bimeson_year_start';
-	const FLD_YEAR_END           = '_bimeson_year_end';
+	const FLD_COUNT                   = '_bimeson_count';
+	const FLD_SORT_BY_DATE_FIRST      = '_bimeson_sort_by_date_first';
+	const FLD_SHOW_FILTER             = '_bimeson_show_filter';
+	const FLD_OMIT_HEAD_OF_SINGLE_CAT = '_bimeson_omit_head_of_single_cat';
+	const FLD_YEAR_START              = '_bimeson_year_start';
+	const FLD_YEAR_END                = '_bimeson_year_end';
 
-	const LBL_COUNT              = '表示件数指定（見出無し）';
-	const LBL_SORT_BY_DATE_FIRST = '最初に年で並び替える';
-	const LBL_SHOW_FILTER        = 'フィルターを表示';
-	const LBL_YEAR               = '表示期間（年）';
+	const LBL_COUNT                   = '表示件数指定（見出無し）';
+	const LBL_SORT_BY_DATE_FIRST      = '最初に年で並び替える';
+	const LBL_SHOW_FILTER             = 'フィルターを表示';
+	const LBL_OMIT_HEAD_OF_SINGLE_CAT = '1つしかない分類の見出しを省略';
+	const LBL_YEAR                    = '表示期間（年）';
 
 	private $_core;
 	private $_tax;
@@ -71,6 +73,8 @@ class Bimeson_Admin {
 		update_post_meta( $post_id, self::FLD_SORT_BY_DATE_FIRST, $group );
 		$show_filter = empty( $_POST[ self::FLD_SHOW_FILTER ] ) ? 'false' : 'true';
 		update_post_meta( $post_id, self::FLD_SHOW_FILTER, $show_filter );
+		$omit_single_cat = empty( $_POST[ self::FLD_OMIT_HEAD_OF_SINGLE_CAT ] ) ? 'false' : 'true';
+		update_post_meta( $post_id, self::FLD_OMIT_HEAD_OF_SINGLE_CAT, $omit_single_cat );
 
 		\st\field\save_post_meta( $post_id, self::FLD_COUNT );
 		\st\field\save_post_meta( $post_id, self::FLD_YEAR_START );
@@ -82,9 +86,10 @@ class Bimeson_Admin {
 	public function _cb_output_html( $post ) {
 		wp_nonce_field( 'bimeson_admin', "bimeson_admin_nonce" );
 
-		$list_id     = (int) get_post_meta( $post->ID, self::FLD_LIST_ID, true );
-		$group       = get_post_meta( $post->ID, self::FLD_SORT_BY_DATE_FIRST, true );
-		$show_filter = get_post_meta( $post->ID, self::FLD_SHOW_FILTER, true );
+		$list_id         = (int) get_post_meta( $post->ID, self::FLD_LIST_ID, true );
+		$group           = get_post_meta( $post->ID, self::FLD_SORT_BY_DATE_FIRST, true );
+		$show_filter     = get_post_meta( $post->ID, self::FLD_SHOW_FILTER, true );
+		$omit_single_cat = get_post_meta( $post->ID, self::FLD_OMIT_HEAD_OF_SINGLE_CAT, true );
 
 		$temp       = get_post_meta( $post->ID, self::FLD_COUNT, true );
 		$count      = ( empty( $temp ) || (int) $temp < 1 ) ? '' : (int) $temp;
@@ -101,6 +106,7 @@ class Bimeson_Admin {
 				<label for="<?php echo self::FLD_COUNT ?>"><?php echo self::LBL_COUNT ?><input style="width:4rem;" type="number" size="4" name="<?php echo self::FLD_COUNT ?>" id="<?php echo self::FLD_COUNT ?>" value="<?php echo $count ?>" /></label>
 				<label for="<?php echo self::FLD_SORT_BY_DATE_FIRST ?>"><input type="checkbox" name="<?php echo self::FLD_SORT_BY_DATE_FIRST ?>" id="<?php echo self::FLD_SORT_BY_DATE_FIRST ?>" value="true" <?php checked( $group, 'true' ) ?>/><?php echo self::LBL_SORT_BY_DATE_FIRST ?></label>
 				<label for="<?php echo self::FLD_SHOW_FILTER ?>"><input type="checkbox" name="<?php echo self::FLD_SHOW_FILTER ?>" id="<?php echo self::FLD_SHOW_FILTER ?>" value="true" <?php checked( $show_filter, 'true' ) ?>/><?php echo self::LBL_SHOW_FILTER ?></label>
+				<label for="<?php echo self::FLD_OMIT_HEAD_OF_SINGLE_CAT ?>"><input type="checkbox" name="<?php echo self::FLD_OMIT_HEAD_OF_SINGLE_CAT ?>" id="<?php echo self::FLD_OMIT_HEAD_OF_SINGLE_CAT ?>" value="true" <?php checked( $omit_single_cat, 'true' ) ?>/><?php echo self::LBL_OMIT_HEAD_OF_SINGLE_CAT ?></label>
 			</div>
 			<div class="<?php echo self::NS ?>_setting_row">
 				<label for="<?php echo self::FLD_YEAR_START ?>"><?php echo self::LBL_YEAR ?><input style="width:5rem;" type="number" size="5" name="<?php echo self::FLD_YEAR_START ?>" value="<?php echo $year_start ?>" /></label><span>-</span>

@@ -132,7 +132,8 @@ class Bimeson {
 	private function _echo_filter_list( $post_id ) {
 		$filter_state       = json_decode( get_post_meta( $post_id, Bimeson_Admin::FLD_JSON_PARAMS, true ), true );
 		$sort_by_year_first = get_post_meta( $post_id, Bimeson_Admin::FLD_SORT_BY_DATE_FIRST, true ) === 'true';
-		$show_filter        = get_post_meta( $post_id, Bimeson_Admin::FLD_SHOW_FILTER, true );
+		$show_filter        = get_post_meta( $post_id, Bimeson_Admin::FLD_SHOW_FILTER, true ) === 'true';
+		$omit_single_cat    = get_post_meta( $post_id, Bimeson_Admin::FLD_OMIT_HEAD_OF_SINGLE_CAT, true ) === 'true';
 		$temp               = get_post_meta( $post_id, Bimeson_Admin::FLD_COUNT, true );
 		$count              = ( empty( $temp ) || (int) $temp < 1 ) ? false : (int) $temp;
 		$temp               = get_post_meta( $post_id, Bimeson_Admin::FLD_YEAR_START, true );
@@ -148,7 +149,7 @@ class Bimeson {
 				$items = $this->_filter_list_items( $items, $filter_state, $year_start, $year_end, $count, $years_exist );
 			}
 		}
-		if ( $show_filter === 'true' ) {
+		if ( $show_filter ) {
 			echo '<div class="bimeson-filter">';
 			$this->_tax->the_filter( $filter_state, $year_start, $year_end, $years_exist );
 			echo '</div>';
@@ -156,7 +157,8 @@ class Bimeson {
 		echo '<div class="bimeson-content stile">';
 		if ( is_array( $items ) ) {
 			if ( $count === false ) {
-				$this->_the_list( $items, $sort_by_year_first );
+				$omitted_heading = $omit_single_cat ? $this->_make_omitted_heading( $filter_state ) : false;
+				$this->_the_list( $items, $sort_by_year_first, $omitted_heading );
 			} else {
 				$this->_echo_list( $items, \st\Multilang::get_instance()->get_site_lang() );
 			}
@@ -291,7 +293,21 @@ class Bimeson {
 
 	// -------------------------------------------------------------------------
 
-	private function _the_list( $items, $sort_by_year_first = false ) {
+	private function _make_omitted_heading( $filter_state ) {
+		if ( $filter_state === false ) return false;
+		$ret = [];
+		foreach ( $this->_tax->get_root_slugs() as $rs ) {
+			$ret[ $rs ] = false;
+		}
+		if ( $filter_state !== false ) {
+			foreach ( $filter_state as $rs => $s ) {
+				if ( count( $s ) === 1 ) $ret[ $rs ] = true;
+			}
+		}
+		return $ret;
+	}
+
+	private function _the_list( $items, $sort_by_year_first, $omitted_heading ) {
 		$sl = \st\Multilang::get_instance()->get_site_lang();
 		$rss = $this->_tax->get_root_slugs();
 		$rs_to_depth  = $this->_tax->get_root_slugs_to_sub_depths();
@@ -349,7 +365,11 @@ class Bimeson {
 					$buf = [];
 				}
 				for ( $h = $hier; $h < $hier_size; $h++ ) {
-					if ( ! empty( $cat_key[ $h ] ) ) $this->_echo_heading( $h, $sort_by_year_first ? 1 : 0, $hier_to_rs[ $h ], $cat_key[ $h ] );
+					if ( ! empty( $cat_key[ $h ] ) ) {
+						if ( $omitted_heading === false || ! $omitted_heading[ $hier_to_rs[ $h ] ] ) {
+							$this->_echo_heading( $h, $sort_by_year_first ? 1 : 0, $hier_to_rs[ $h ], $cat_key[ $h ] );
+						}
+					}
 				}
 			}
 			$prev_cat_key = $cat_key;  // Clone!
