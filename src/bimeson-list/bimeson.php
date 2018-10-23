@@ -6,7 +6,7 @@ namespace st;
  * Functions and Definitions for Bimeson
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-20
+ * @version 2018-10-23
  *
  */
 
@@ -36,9 +36,10 @@ class Bimeson {
 	}
 
 	private $_key;
-	private $_tax   = null;
-	private $_admin = null;
-	private $_list  = null;
+	private $_tax        = null;
+	private $_admin      = null;
+	private $_list       = null;
+	private $_head_level = 2;
 
 	private function __construct() {}
 
@@ -64,6 +65,10 @@ class Bimeson {
 				}
 			} );
 		}
+	}
+
+	public function set_heading_level( $level ) {
+		$this->_head_level = $level;
 	}
 
 	private function _add_shortcodes() {
@@ -379,7 +384,7 @@ class Bimeson {
 		} else {
 			$_name = esc_html( is_numeric( $slug ) ? $slug : "[$slug]" );
 		}
-		$level = $hier + 2 + ( $sort_by_year_first ? 1 : 0 );
+		$level = $hier + $this->_head_level + ( $sort_by_year_first ? 1 : 0 );
 		$tag = ( $level <= 6 ) ? "h$level" : 'div';
 		$data_depth = $level - 1;
 		echo "<$tag class=\"$root_slug\" data-depth=\"$data_depth\">$_name</$tag>\n";
