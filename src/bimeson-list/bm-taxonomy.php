@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Taxonomy)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-20
+ * @version 2018-10-23
  *
  */
 
@@ -60,6 +60,11 @@ class Bimeson_Taxonomy {
 		add_action( "edit_terms",                          [ $this, '_cb_edit_taxonomy' ], 10, 2 );
 		add_action( "edited_{$this->_tax_root}",           [ $this, '_cb_edited_taxonomy' ], 10, 2 );
 		add_filter( 'query_vars',                          [ $this, '_cb_query_vars' ] );
+
+		foreach ( $this->get_sub_taxonomies() as $sub_tax ) {
+			add_action( "{$sub_tax}_edit_form_fields", [ $this, '_cb_taxonomy_edit_form_fields' ], 10, 2 );
+			add_action( "edited_{$sub_tax}",           [ $this, '_cb_edited_taxonomy' ], 10, 2 );
+		}
 	}
 
 	public function set_year_formatter( $func ) {
@@ -370,9 +375,10 @@ class Bimeson_Taxonomy {
 	// Callback Functions ------------------------------------------------------
 
 	public function _cb_taxonomy_edit_form_fields( $term, $taxonomy ) {
-		self::_boolean_form( $term, self::KEY_LAST_CAT_OMITTED, $this->_labels['omit_last_cat'] );
-		if ( $term->parent === '0' ) {
+		if ( $taxonomy === $this->_tax_root ) {
 			self::_boolean_form( $term, self::KEY_IS_HIDDEN, $this->_labels['hide_from_view'] );
+		} else {
+			self::_boolean_form( $term, self::KEY_LAST_CAT_OMITTED, $this->_labels['omit_last_cat'] );
 		}
 	}
 
@@ -397,6 +403,8 @@ class Bimeson_Taxonomy {
 	public function _cb_edited_taxonomy( $term_id, $taxonomy ) {
 		self::_is_not_empty( $term_id, self::KEY_LAST_CAT_OMITTED );
 		self::_is_not_empty( $term_id, self::KEY_IS_HIDDEN );
+
+		if ( $taxonomy !== $this->_tax_root ) return;
 
 		$term = get_term_by( 'id', $term_id, $this->_tax_root );
 		$new_taxonomy = $this->term_to_taxonomy( $term );
