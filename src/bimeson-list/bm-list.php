@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Admin)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-10-08
+ * @version 2018-10-23
  *
  */
 
@@ -113,8 +113,8 @@ class Bimeson_List {
 			if ( $add_tax || $add_term ) $this->_process_terms( $items, $add_tax, $add_term );
 
 			$this->_process_items( $items );
-			$json_items = json_encode( $items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_QUOT );
-			update_post_meta( $post_id, self::FLD_ITEMS, $json_items );
+			$json_items = json_encode( $items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+			update_post_meta( $post_id, self::FLD_ITEMS, addslashes( $json_items ) );  // Because the meta value is passed through the stripslashes() function upon being stored.
 		}
 	}
 
