@@ -3,7 +3,7 @@
  * Bimeson List Page Admin
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-14
+ * @version 2018-10-23
  *
  */
 
@@ -29,6 +29,13 @@
 	-ms-user-select: none;
 	-moz-user-select: none;
 	-webkit-user-select: none;
+}
+
+.bimeson-filter-cat {
+	padding-top: 8px;
+	padding-bottom: 8px;
+	padding-right: 8px;
+	font-weight: bold;
 }
 
 input[type=checkbox].tgl {
