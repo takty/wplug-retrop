@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Taxonomy)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-10-23
+ * @version 2018-11-15
  *
  */
 
@@ -177,7 +177,7 @@ class Bimeson_Taxonomy {
 		return $terms;
 	}
 
-	public function the_filter( $filter_state = false, $year_start = false, $year_end = false, $years_exist = [] ) {
+	public function the_filter( $filter_state, $years_exist ) {
 		$slug_to_terms = $this->get_root_slugs_to_sub_terms( false, true );
 
 		if ( is_admin() ) {
@@ -188,11 +188,28 @@ class Bimeson_Taxonomy {
 		}
 		if ( ! empty( $years_exist ) ) $this->_echo_year_select( $years_exist, $state );
 
-		foreach ( $slug_to_terms as $slug => $terms ) {
-			$fsset = isset( $filter_state[ $slug ] );
-			if ( ! $fsset || 1 < count( $filter_state[ $slug ] ) ) {
-				$this->_echo_tax_checkboxes( $slug, $terms, $state, $fsset ? $filter_state[ $slug ] : false );
+		if ( $filter_state === false ) {
+			foreach ( $slug_to_terms as $slug => $terms ) {
+				$this->_echo_tax_checkboxes( $slug, $terms, $state, false );
 			}
+		} else {
+			foreach ( $slug_to_terms as $slug => $terms ) {
+				$fsset = isset( $filter_state[ $slug ] );
+				if ( ! $fsset || 1 < count( $filter_state[ $slug ] ) ) {
+					$this->_echo_tax_checkboxes( $slug, $terms, $state, $fsset ? $filter_state[ $slug ] : false );
+				}
+			}
+		}
+	}
+
+	public function the_filter_admin() {
+		$slug_to_terms = $this->get_root_slugs_to_sub_terms( false, false );
+
+		global $post;
+		$state = $this->get_filter_state_from_meta( $post );
+
+		foreach ( $slug_to_terms as $slug => $terms ) {
+			$this->_echo_tax_checkboxes( $slug, $terms, $state, false );
 		}
 	}
 

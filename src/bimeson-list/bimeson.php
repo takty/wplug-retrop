@@ -6,7 +6,7 @@ namespace st;
  * Functions and Definitions for Bimeson
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-10-23
+ * @version 2018-11-15
  *
  */
 
@@ -151,7 +151,7 @@ class Bimeson {
 		}
 		if ( $show_filter ) {
 			echo '<div class="bimeson-filter">';
-			$this->_tax->the_filter( $filter_state, $year_start, $year_end, $years_exist );
+			$this->_tax->the_filter( $filter_state, $years_exist );
 			echo '</div>';
 		}
 		echo '<div class="bimeson-content stile">';

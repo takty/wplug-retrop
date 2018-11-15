@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Admin)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-10-23
+ * @version 2018-11-15
  *
  */
 
@@ -113,7 +113,7 @@ class Bimeson_Admin {
 				<input style="width:5rem;" type="number" size="5" name="<?php echo self::FLD_YEAR_END ?>" value="<?php echo $year_end ?>" />
 			</div>
 			<div class="<?php echo self::NS ?>_filter_row">
-				<?php $this->_tax->the_filter(); ?>
+				<?php $this->_tax->the_filter_admin(); ?>
 			</div>
 		</div>
 	<?php
