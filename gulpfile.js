@@ -5,10 +5,10 @@ const $ = require('gulp-load-plugins')({pattern: ['gulp-*']});
 
 
 gulp.task('js-raw', () => {
-	return gulp.src(['src/**/*.js', '!src/**/*.min.js', '!src/_backup/**/*'], {base: 'src'})
+	return gulp.src(['src/**/*.js', '!src/**/*.min.js'], { base: 'src' })
 		.pipe($.plumber())
-		.pipe($.babel({presets: [['env', {targets: {ie: 11}}]]}))
-		.pipe($.rename({extname: '.min.js'}))
+		.pipe($.babel({ presets: [['@babel/env', { targets: { ie: 11 } }]] }))
+		.pipe($.rename({ extname: '.min.js' }))
 		.pipe($.uglify())
 		.pipe(gulp.dest('dist'));
 });
@@ -22,22 +22,22 @@ gulp.task('js-min', () => {
 gulp.task('js', gulp.parallel('js-raw', 'js-min'));
 
 gulp.task('sass', () => {
-	return gulp.src(['src/**/*.scss', '!src/_backup/**/*'])
+	return gulp.src(['src/**/*.scss'])
 		.pipe($.plumber())
 		.pipe($.sourcemaps.init())
-		.pipe($.sass({outputStyle: 'compressed'}))
-		.pipe($.autoprefixer({browsers: ['ie >= 11'], remove: false}))
-		.pipe($.rename({extname: '.min.css'}))
+		.pipe($.sass({ outputStyle: 'compressed' }))
+		.pipe($.autoprefixer({ browsers: ['ie >= 11'], remove: false }))
+		.pipe($.rename({ extname: '.min.css' }))
 		.pipe($.sourcemaps.write('.'))
 		.pipe(gulp.dest('dist'));
 });
 
 gulp.task('css-raw', () => {
-	return gulp.src(['src/**/*.css', '!src/**/*.min.css', '!src/_backup/**/*'], {base: 'src'})
+	return gulp.src(['src/**/*.css', '!src/**/*.min.css'], { base: 'src' })
 		.pipe($.plumber())
 		.pipe($.sourcemaps.init())
 		.pipe($.cleanCss())
-		.pipe($.rename({extname: '.min.css'}))
+		.pipe($.rename({ extname: '.min.css' }))
 		.pipe($.sourcemaps.write('.'))
 		.pipe(gulp.dest('dist'));
 });
@@ -51,16 +51,16 @@ gulp.task('css-min', () => {
 gulp.task('css', gulp.parallel('css-raw', 'css-min'));
 
 gulp.task('php', () => {
-	return gulp.src(['src/**/*.php', '!src/_backup/**/*'])
-		.pipe($.changed('dist'))
+	return gulp.src(['src/**/*.php'])
 		.pipe($.plumber())
+		.pipe($.changed('dist'))
 		.pipe(gulp.dest('dist'));
 });
 
 gulp.task('img', () => {
-	return gulp.src(['src/**/*.png', 'src/**/*.jpg', 'src/**/*.jpeg', 'src/**/*.svg', '!src/_backup/**/*'], {base: 'src'})
-		.pipe($.changed('dist'))
+	return gulp.src(['src/**/*.png', 'src/**/*.jpg', 'src/**/*.jpeg', 'src/**/*.svg'], { base: 'src' })
 		.pipe($.plumber())
+		.pipe($.changed('dist'))
 		.pipe(gulp.dest('dist'));
 });
 
