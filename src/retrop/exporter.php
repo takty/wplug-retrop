@@ -345,4 +345,3 @@ class Retrop_Exporter {
 	}
 
 }
-
