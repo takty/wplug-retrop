@@ -7,7 +7,7 @@ use \st\retrop as R;
  * Retrop Importer: Versatile XLSX Importer
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2019-02-28
+ * @version 2019-10-03
  *
  */
 
@@ -19,8 +19,8 @@ if ( ! class_exists( '\WP_Importer' ) ) {
 }
 if ( ! class_exists( '\WP_Importer' ) ) return;
 
-require_once __DIR__ . '/util.php';
-require_once __DIR__ . '/registerer.php';
+require_once __DIR__ . '/asset/util.php';
+require_once __DIR__ . '/asset/registerer.php';
 require_once __DIR__ . '/../system/ajax.php';
 
 
@@ -110,8 +110,8 @@ class Retrop_Importer extends \WP_Importer {
 
 
 	public function dispatch() {
-		wp_enqueue_script( 'retrop-importer', $this->_url_to . '/importer.min.js' );
-		wp_enqueue_script( 'xlsx', $this->_url_to . '/xlsx.full.min.js' );
+		wp_enqueue_script( 'retrop-importer', $this->_url_to . '/asset/importer.min.js' );
+		wp_enqueue_script( 'xlsx', $this->_url_to . '/asset/xlsx.full.min.js' );
 
 		$this->_header();
 

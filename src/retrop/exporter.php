@@ -6,12 +6,12 @@ use \st\retrop as R;
  * Retrop Exporter: Versatile XLSX Exporter
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2019-03-09
+ * @version 2019-10-03
  *
  */
 
 
-require_once __DIR__ . '/simple_html_dom.php';
+require_once __DIR__ . '/asset/simple_html_dom.php';
 
 
 class Retrop_Exporter {
@@ -74,8 +74,8 @@ class Retrop_Exporter {
 	}
 
 	public function _cb_output_page() {
-		wp_enqueue_script( 'xlsx', $this->_url_to . '/xlsx.full.min.js' );
-		wp_enqueue_script( 'retrop-exporter', $this->_url_to . '/exporter.min.js' );
+		wp_enqueue_script( 'xlsx', $this->_url_to . '/asset/xlsx.full.min.js' );
+		wp_enqueue_script( 'retrop-exporter', $this->_url_to . '/asset/exporter.min.js' );
 
 		$this->_header();
 
