@@ -7,7 +7,7 @@ use \st\retrop as R;
  * Retrop Registerer
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2019-03-09
+ * @version 2019-10-03
  *
  */
 
@@ -463,17 +463,20 @@ class Registerer {
 		}
 
 		$dom = str_get_html( $val, true, true, DEFAULT_TARGET_CHARSET, false );
-		foreach ( $dom->find( 'img' ) as &$elm ) {
+		foreach ( $dom->find( 'img' ) as $elm ) {
 			$url = $elm->src;
 			if ( ! isset( $targets[ $url ] ) ) continue;
 			$id = $targets[ $url ];
-			$elm->src = $this->_convert_url( (int) $id, $media[ $id ], $elm->class, $post_id, $msg );
+			list( $aid, $url ) = $this->_convert_url( (int) $id, $media[ $id ], $elm->class, $post_id, $msg );
+			$elm->src = $url;
+			if ( $aid ) $this->_replace_image_media_id_class( $elm, $aid );
 		}
-		foreach ( $dom->find( 'a' ) as &$elm ) {
+		foreach ( $dom->find( 'a' ) as $elm ) {
 			$url = $elm->href;
 			if ( ! isset( $targets[ $url ] ) ) continue;
 			$id = $targets[ $url ];
-			$elm->href = $this->_convert_url( (int) $id, $media[ $id ], $elm->class, $post_id, $msg );
+			list( $aid, $url ) = $this->_convert_url( (int) $id, $media[ $id ], $elm->class, $post_id, $msg );
+			$elm->href = $url;
 		}
 		$val = $dom->save();
 		$dom->clear();
@@ -484,7 +487,8 @@ class Registerer {
 	private function _convert_url( $orig_id, $orig_urls, $class, $post_id, &$msg ) {
 		$aid = $this->convert_media_id( $orig_id, $orig_urls, $post_id, $msg );
 		if ( $aid === false ) {
-			return $this->get_full_size_url( $orig_urls );;
+			$url = $this->get_full_size_url( $orig_urls );
+			return [ false, $url ];
 		}
 		if ( empty( $class ) ) {
 			$url = wp_get_attachment_url( $aid );
@@ -499,7 +503,30 @@ class Registerer {
 			$ais = wp_get_attachment_image_src( $aid, $size );
 			$url = $ais[0];
 		}
-		return $url;
+		return [ $aid, $url ];
+	}
+
+	private function _replace_image_media_id_class( $elm, $mid ) {
+		$cls     = explode( ' ', $elm->class );
+		$new_cls = [];
+
+		$correct_id_cl = 'wp-image-' . $mid;
+
+		$has_id      = false;
+		$wrong_id_cl = false;
+
+		foreach ( $cls as $cl ) {
+			if ( strpos( $cl, 'wp-image-' ) === 0 ) {
+				$has_id = true;
+				if ( $cl !== $correct_id_cl ) $wrong_id_cl = $cl;
+			} else {
+				$new_cls[] = $cl;
+			}
+		}
+		if ( $has_id && $wrong_id_cl === false ) return;
+
+		$new_cls[] = $correct_id_cl;
+		$elm->class = implode( ' ', $new_cls );
 	}
 
 }
