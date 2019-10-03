@@ -2,21 +2,24 @@
   "name": "stapl",
   "version": "1.0.0",
   "description": "Components for WordPress Websites",
+  "author": "Takuto Yanagida",
   "main": "gulpfile.js",
   "scripts": {
-    "start": "gulp",
-    "postinstall": "gulp build"
+    "postinstall": "gulp build",
+    "start": "gulp"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/takty/stapl.git"
   },
-  "author": "Takuto Yanagida",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/takty/stapl/issues"
   },
   "homepage": "https://github.com/takty/stapl#readme",
+  "browserslist": [
+    "ie >= 11"
+  ],
   "dependencies": {
     "@babel/core": "^7.6.2",
     "@babel/preset-env": "^7.6.2",
@@ -30,6 +33,6 @@
     "gulp-rename": "^1.4.0",
     "gulp-sass": "^4.0.2",
     "gulp-sourcemaps": "^2.6.5",
-    "gulp-uglify": "^3.0.2"
+    "gulp-terser": "^1.2.0"
   }
 }
