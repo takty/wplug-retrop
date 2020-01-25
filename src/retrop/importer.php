@@ -7,7 +7,7 @@ use \st\retrop as R;
  * Retrop Importer: Versatile XLSX Importer
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2019-10-03
+ * @version 2020-01-25
  *
  */
 
@@ -21,7 +21,7 @@ if ( ! class_exists( '\WP_Importer' ) ) return;
 
 require_once __DIR__ . '/asset/util.php';
 require_once __DIR__ . '/asset/registerer.php';
-require_once __DIR__ . '/../system/ajax.php';
+require_once __DIR__ . '/../../stinc/system/ajax.php';
 
 
 class Retrop_Importer extends \WP_Importer {
