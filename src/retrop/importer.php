@@ -1,13 +1,12 @@
 <?php
 namespace st;
 use \st\retrop as R;
-
 /**
  *
  * Retrop Importer: Versatile XLSX Importer
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2020-01-25
+ * @version 2020-03-27
  *
  */
 
@@ -47,7 +46,7 @@ class Retrop_Importer extends \WP_Importer {
 	public function __construct( $id, $args ) {
 		$this->_id           = 'retrop_import_' . $id;
 		$this->_json_structs = json_encode( $args['structs'] );
-		$this->_url_to       = $args['url_to'];
+		$this->_url_to       = ( ! isset( $args['url_to'] ) || $args['url_to'] === false ) ? \st\get_file_uri( __DIR__ ) : $args['url_to'];
 		if ( isset( $args['post_filter'] ) ) $this->_post_filter = $args['post_filter'];
 
 		if ( isset( $args['can_auto_add_terms'] ) ) $this->_can_auto_add_terms = $args['can_auto_add_terms'];
@@ -110,8 +109,8 @@ class Retrop_Importer extends \WP_Importer {
 
 
 	public function dispatch() {
-		wp_enqueue_script( 'retrop-importer', $this->_url_to . '/asset/importer.min.js' );
-		wp_enqueue_script( 'xlsx', $this->_url_to . '/asset/xlsx.full.min.js' );
+		wp_enqueue_script( 'retrop-importer', \st\abs_url( $this->_url_to, './asset/importer.min.js' ) );
+		wp_enqueue_script( 'xlsx', \st\abs_url( $this->_url_to, './asset/xlsx.full.min.js' ) );
 
 		$this->_header();
 
