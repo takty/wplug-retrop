@@ -6,7 +6,7 @@ use \st\retrop as R;
  * Retrop Exporter: Versatile XLSX Exporter
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2020-03-27
+ * @version 2020-03-28
  *
  */
 
@@ -255,6 +255,9 @@ class Retrop_Exporter {
 				break;
 			case R\FS_TYPE_SLUG:
 				$val = $p->post_name;
+				break;
+			case R\FS_TYPE_MENU_ORDER:
+				$val = $p->menu_order;
 				break;
 			case R\FS_TYPE_TERM:
 				$tax = $s[R\FS_TAXONOMY];

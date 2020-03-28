@@ -7,7 +7,7 @@ use \st\retrop as R;
  * Retrop Registerer
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2019-10-03
+ * @version 2020-03-28
  *
  */
 
@@ -197,6 +197,7 @@ class Registerer {
 				'post_date'     => $this->get_post_date( $item ),
 				'post_date_gmt' => $this->get_post_date_gmt( $item ),
 				'post_name'     => $this->get_post_name( $item ),
+				'menu_order'    => $this->get_menu_order( $item ),
 				'post_status'   => 'publish',
 			];
 			$post_id = wp_insert_post( $args );  // Insert again for assigning media to the page
@@ -209,6 +210,7 @@ class Registerer {
 				'post_date'     => $this->get_post_date( $item ),
 				'post_date_gmt' => $this->get_post_date_gmt( $item ),
 				'post_name'     => $this->get_post_name( $item ),
+				'menu_order'    => $this->get_menu_order( $item ),
 				'post_status'   => 'publish',
 			];
 			$post_id = wp_insert_post( $args );  // Insert again for assigning media to the page
@@ -319,7 +321,7 @@ class Registerer {
 	}
 
 
-	// ---- POST DATE & DATE GMT & POST NAME
+	// ---- POST DATE & DATE GMT & POST NAME & MENU ORDER
 
 
 	private function get_post_date( $item ) {
@@ -355,6 +357,16 @@ class Registerer {
 			return $val;
 		}
 		return '';
+	}
+
+	private function get_menu_order( $item ) {
+		$mo = 0;
+		foreach ( $this->_type2structs[ R\FS_TYPE_MENU_ORDER ] as $col => $s ) {
+			$col = $this->split_column_name( $col );
+			if ( ! isset( $item[ $col ] ) ) continue;
+			$mo = intval( $item[ $col ] );
+		}
+		return $mo;
 	}
 
 
