@@ -106,7 +106,7 @@ class Bimeson_List {
 	public function _cb_save_post( $post_id ) {
 		if ( ! isset( $_POST['bimeson_list_nonce'] ) || ! wp_verify_nonce( $_POST['bimeson_list_nonce'], 'bimeson_list' ) ) return;
 		if ( ! current_user_can( 'edit_post', $post_id ) ) return;
-		$this->_media_picker->save_post( $post_id );
+		$this->_media_picker->save_items( $post_id );
 
 		$json_items = $_POST[ self::FLD_ITEMS ];
 		if ( $json_items !== self::NOT_MODIFIED ) {
