@@ -3,7 +3,7 @@
  * Bimeson List Post Type Admin
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-14
+ * @version 2020-06-04
  *
  */
 
@@ -115,11 +115,16 @@ document.addEventListener('DOMContentLoaded', function () {
 			for (var i = 0, I = data.length; i < I; i += 1) arr[i] = String.fromCharCode(data[i]);
 			var bstr = arr.join('');
 
-			var book = XLSX.read(bstr, {type:'binary'});
-			var sheetName = book.SheetNames[0];
-			var sheet = book.Sheets[sheetName];
-			if (sheet) processSheet(sheet, lang, items);
-			console.log('Finish filtering file');
+			try {
+				var book = XLSX.read(bstr, {type:'binary'});
+				var sheetName = book.SheetNames[0];
+				var sheet = book.Sheets[sheetName];
+				if (sheet) processSheet(sheet, lang, items);
+				console.log('Finish filtering file');
+			} catch (e) {
+				console.log('Error on filtering file');
+				console.log(e);
+			}
 		}
 
 		function finished() {
