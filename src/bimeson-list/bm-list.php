@@ -71,7 +71,7 @@ class Bimeson_List {
 		if ( $url_to === false ) $url_to = \st\get_file_uri( __DIR__ );
 		$url_to = untrailingslashit( $url_to );
 
-		\st\MediaPicker::enqueue_script( $url_to . '/../../stinc/admin/' );
+		\st\MediaPicker::enqueue_script( $url_to . '/../../stinc/metabox/' );
 		wp_enqueue_style(  self::NS, $url_to . '/asset/bm-list.min.css' );
 		wp_enqueue_script( self::NS, $url_to . '/asset/bm-list.min.js' );
 		wp_enqueue_script( 'xlsx', $url_to . '/asset/xlsx.full.min.js' );
