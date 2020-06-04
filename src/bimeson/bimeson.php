@@ -11,6 +11,7 @@ namespace st;
  */
 
 
+require_once __DIR__ . '/../../stinc/admin/misc.php';
 require_once __DIR__ . '/../../stinc/admin/template-admin.php';
 require_once __DIR__ . '/../../stinc/system/ordered-term.php';
 require_once __DIR__ . '/../../stinc/system/field.php';

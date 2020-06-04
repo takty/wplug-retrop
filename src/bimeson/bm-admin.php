@@ -6,7 +6,7 @@ namespace st;
  * Bimeson (Admin)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-07-19
+ * @version 2020-06-04
  *
  */
 
@@ -51,7 +51,7 @@ class Bimeson_Admin {
 	}
 
 	public function _cb_admin_menu() {
-		if ( \st\page_template_admin\is_post_type( Bimeson::PT_BIMESON ) ) {
+		if ( \st\is_post_type( Bimeson::PT_BIMESON ) ) {
 			foreach ( $this->_additional_langs as $al ) {
 				\st\field\add_rich_editor_meta_box( "_post_content_$al", "本文 [$al]", 'bimeson' );
 			}

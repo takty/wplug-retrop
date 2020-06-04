@@ -57,7 +57,7 @@ class Bimeson_List {
 
 	public function _cb_admin_menu() {
 		add_action( 'admin_print_scripts', [ $this, '_cb_enqueue_script_media' ] );
-		if ( \st\page_template_admin\is_post_type( self::PT ) ) {
+		if ( \st\is_post_type( self::PT ) ) {
 			$this->_cb_enqueue_script();
 			add_meta_box( 'bimeson_mb', self::LBL_POST_TYPE, [ $this, '_cb_output_html_list' ], self::PT, 'normal', 'high' );
 		}
@@ -66,7 +66,7 @@ class Bimeson_List {
 	public function _cb_enqueue_script( $url_to = false ) {
 		global $pagenow;
 		if ( $pagenow !== 'post.php' && $pagenow !== 'post-new.php' ) return;
-		if ( ! \st\page_template_admin\is_post_type( self::PT ) ) return;
+		if ( ! \st\is_post_type( self::PT ) ) return;
 
 		if ( $url_to === false ) $url_to = \st\get_file_uri( __DIR__ );
 		$url_to = untrailingslashit( $url_to );
@@ -80,7 +80,7 @@ class Bimeson_List {
 	public function _cb_enqueue_script_media() {
 		global $pagenow;
 		if ( $pagenow !== 'post.php' && $pagenow !== 'post-new.php' ) return;
-		if ( ! \st\page_template_admin\is_post_type( self::PT ) ) return;
+		if ( ! \st\is_post_type( self::PT ) ) return;
 
 		$post_id = \st\page_template_admin\get_post_id();
 		wp_enqueue_media( [ 'post' => $post_id ] );
