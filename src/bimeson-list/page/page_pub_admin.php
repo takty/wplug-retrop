@@ -4,12 +4,12 @@
  * Admin for the Template for Publications Static Pages
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-06
+ * @version 2020-06-04
  *
  */
 
 
-function setup_page_template_admin() {
+function setup_template_admin() {
 	\st\Bimeson::get_instance()->enqueue_script();
 	\st\Bimeson::get_instance()->add_meta_box( '業績リスト', 'page' );
 

@@ -46,8 +46,8 @@ class Bimeson_Admin {
 		if ( $url_to === false ) $url_to = \st\get_file_uri( __DIR__ );
 		$url_to = untrailingslashit( $url_to );
 
-		$post_id = \st\page_template_admin\get_post_id();
-		$post_type = \st\page_template_admin\get_post_type( $post_id );
+		$post_id = \st\get_post_id();
+		$post_type = \st\get_post_type_in_admin( $post_id );
 		if ( $post_type === Bimeson_List::PT ) {
 		} else {
 			wp_enqueue_style(  self::NS . '_filter_admin', $url_to . '/asset/bm-admin.min.css' );

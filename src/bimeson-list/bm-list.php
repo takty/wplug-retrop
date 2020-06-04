@@ -82,7 +82,7 @@ class Bimeson_List {
 		if ( $pagenow !== 'post.php' && $pagenow !== 'post-new.php' ) return;
 		if ( ! \st\is_post_type( self::PT ) ) return;
 
-		$post_id = \st\page_template_admin\get_post_id();
+		$post_id = \st\get_post_id();
 		wp_enqueue_media( [ 'post' => $post_id ] );
 	}
 
