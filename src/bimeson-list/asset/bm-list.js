@@ -163,8 +163,8 @@ document.addEventListener('DOMContentLoaded', function () {
 				var key = colToKey[x];
 				if (key === false) continue;
 				if (key === KEY_BODY || key.indexOf(KEY_BODY + '_') === 0) {
-					if (cell && cell.h && cell.h.length > 0) {
-						var text = cell.h.replace(/<\/?span("[^"]*"|'[^']*'|[^'">])*>/g, '');  // remove automatically inserted 'span' tag.
+					if (cell && cell.w && cell.w.length > 0) {
+						var text = cell.w.replace(/<\/?span("[^"]*"|'[^']*'|[^'">])*>/g, '');  // remove automatically inserted 'span' tag.
 						text = text.replace(/<br\/>/g, '<br />');
 						text = text.replace(/&#x000d;&#x000a;/g, '<br />');
 						item[key] = text;
