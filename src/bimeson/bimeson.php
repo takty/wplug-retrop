@@ -6,16 +6,16 @@ namespace st;
  * Functions and Definitions for Bimeson
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-03-13
+ * @version 2020-06-04
  *
  */
 
 
-require_once __DIR__ . '/../../stinc/admin/page-template-admin.php';
+require_once __DIR__ . '/../../stinc/admin/template-admin.php';
 require_once __DIR__ . '/../../stinc/system/ordered-term.php';
 require_once __DIR__ . '/../../stinc/system/field.php';
-require_once __DIR__ . '/../../stinc/tag/template-tags.php';
-require_once __DIR__ . '/../../stinc/tag/url.php';
+require_once __DIR__ . '/../../stinc/tag/template-tag.php';
+require_once __DIR__ . '/../../stinc/util/url.php';
 require_once __DIR__ . '/bm-taxonomy.php';
 require_once __DIR__ . '/bm-admin.php';
 

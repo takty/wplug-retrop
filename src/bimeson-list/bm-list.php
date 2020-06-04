@@ -6,12 +6,12 @@ namespace st;
  * Bimeson (Admin)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-10-23
+ * @version 2020-06-04
  *
  */
 
 
-require_once __DIR__ . '/../../stinc/admin/media-picker.php';
+require_once __DIR__ . '/../../stinc/metabox/media-picker.php';
 
 
 class Bimeson_List {
@@ -31,6 +31,7 @@ class Bimeson_List {
 	const LBL_UPDATE    = 'リストを更新';
 
 	private $_tax;
+	private $_media_picker;
 
 	public function __construct( $tax ) {
 		$this->_tax = $tax;
@@ -47,6 +48,8 @@ class Bimeson_List {
 		] );
 		add_action( 'admin_menu',            [ $this, '_cb_admin_menu' ] );
 		add_action( 'save_post_' . self::PT, [ $this, '_cb_save_post' ] );
+
+		$this->_media_picker = new \st\MediaPicker( self::FLD_MEDIA );
 	}
 
 
@@ -68,7 +71,7 @@ class Bimeson_List {
 		if ( $url_to === false ) $url_to = \st\get_file_uri( __DIR__ );
 		$url_to = untrailingslashit( $url_to );
 
-		\st\media_picker\enqueue_script_for_admin( $url_to . '/../../stinc/admin/' );
+		\st\MediaPicker::enqueue_script( $url_to . '/../../stinc/admin/' );
 		wp_enqueue_style(  self::NS, $url_to . '/asset/bm-list.min.css' );
 		wp_enqueue_script( self::NS, $url_to . '/asset/bm-list.min.js' );
 		wp_enqueue_script( 'xlsx', $url_to . '/asset/xlsx.full.min.js' );
@@ -85,7 +88,8 @@ class Bimeson_List {
 
 	public function _cb_output_html_list() {
 		wp_nonce_field( 'bimeson_list', 'bimeson_list_nonce' );
-		\st\media_picker\output_html( self::FLD_MEDIA, false );
+		$this->_media_picker->set_title_editable( false );
+		$this->_media_picker->output_html();
 ?>
 		<div>
 			<div class="bimeson_list_edit_row">
@@ -102,7 +106,7 @@ class Bimeson_List {
 	public function _cb_save_post( $post_id ) {
 		if ( ! isset( $_POST['bimeson_list_nonce'] ) || ! wp_verify_nonce( $_POST['bimeson_list_nonce'], 'bimeson_list' ) ) return;
 		if ( ! current_user_can( 'edit_post', $post_id ) ) return;
-		\st\media_picker\save_post( $post_id, self::FLD_MEDIA );
+		$this->_media_picker->save_post( $post_id );
 
 		$json_items = $_POST[ self::FLD_ITEMS ];
 		if ( $json_items !== self::NOT_MODIFIED ) {

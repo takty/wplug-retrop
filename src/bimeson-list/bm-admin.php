@@ -6,12 +6,12 @@ namespace st;
  * Bimeson (Admin)
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2018-11-15
+ * @version 2020-06-04
  *
  */
 
 
-require_once __DIR__ . '/../../stinc/admin/media-picker.php';
+require_once __DIR__ . '/../../stinc/metabox/media-picker.php';
 
 
 class Bimeson_Admin {
