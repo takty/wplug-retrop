@@ -3,7 +3,7 @@
  * Bimeson File Loader
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2020-06-04
+ * @version 2020-06-09
  *
  */
 
@@ -102,8 +102,8 @@ BIMESON['loadFiles'] = (function () {
 				var key = colToKey[x];
 				if (key === false) continue;
 				if (key === KEY_BODY || key.indexOf(KEY_BODY + '_') === 0) {
-					if (cell && cell.w && cell.w.length > 0) {
-						var text = cell.w.replace(/<\/?span("[^"]*"|'[^']*'|[^'">])*>/g, '');  // remove automatically inserted 'span' tag.
+					if (cell && cell.h && cell.h.length > 0) {
+						var text = stripUnnecessarySpan(cell.h);  // remove automatically inserted 'span' tag.
 						text = text.replace(/<br\/>/g, '<br />');
 						text = text.replace(/&#x000d;&#x000a;/g, '<br />');
 						item[key] = text;
@@ -138,6 +138,22 @@ BIMESON['loadFiles'] = (function () {
 			if (str[0] !== '_') str = str.replace('_', '-');
 			if (str[0] === '_') str = str.replace('-', '_');
 		}
+		return str;
+	}
+
+	function stripUnnecessarySpan(str) {
+		str = str.replace(/<span +([^>]*)>/gi, (m, p1) => {
+			const as = p1.trim().toLowerCase().match(/style *= *"([^"]*)"/);
+			if (as && as.length === 2) {
+				const style = as[1].trim();
+				if (style.search(/text-decoration *: *underline/gi) !== -1) {
+					return '<span style="text-decoration:underline;">';
+				}
+			}
+			return '<span>';
+		});
+		str = str.replace(/< +\/ +span +>/gi, '</span>');
+		str = str.replace(/<span>(.+?)<\/span>/gi, (m, p1) => { return p1; });
 		return str;
 	}
 
