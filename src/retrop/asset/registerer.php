@@ -7,7 +7,7 @@ use \st\retrop as R;
  * Retrop Registerer
  *
  * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2020-03-28
+ * @version 2020-12-11
  *
  */
 
@@ -180,6 +180,7 @@ class Registerer {
 			$item[ $this->_media_col ] = $media;
 		}
 		$title = $this->get_post_title( $item );
+		$msg = '';
 
 		if ( $post_id === false ) {  // Add a new post
 			$args = [
@@ -219,7 +220,6 @@ class Registerer {
 		update_post_meta( $post_id, self::PMK_IMPORT_FROM, $file_name );
 		update_post_meta( $post_id, self::PMK_DIGEST,      $digest );
 
-		$msg = '';
 		$this->update_post_metas( $item, $post_id, $msg );
 		$this->add_terms( $item, $post_id, $is_term_inserted );
 		$msg .= $this->update_post_thumbnail( $item, $post_id );
