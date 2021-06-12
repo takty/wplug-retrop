@@ -5,14 +5,12 @@ const $ = require('gulp-load-plugins')({pattern: ['gulp-*']});
 
 
 gulp.task('js-raw', () => {
-	return gulp.src(['src/**/*.js', '!src/**/*.min.js'], { base: 'src' })
+	return gulp.src(['src/**/*.js', '!src/**/*.min.js'], { base: 'src', sourcemaps: true })
 		.pipe($.plumber())
-		.pipe($.sourcemaps.init())
 		.pipe($.babel())
 		.pipe($.terser())
 		.pipe($.rename({ extname: '.min.js' }))
-		.pipe($.sourcemaps.write('.'))
-		.pipe(gulp.dest('dist'));
+		.pipe(gulp.dest('dist', { sourcemaps: '.' }));
 });
 
 gulp.task('js-min', () => {
@@ -24,29 +22,25 @@ gulp.task('js-min', () => {
 gulp.task('js', gulp.parallel('js-raw', 'js-min'));
 
 gulp.task('sass', () => {
-	return gulp.src(['src/**/*.scss'])
+	return gulp.src(['src/**/*.scss'], { sourcemaps: true })
 		.pipe($.plumber({
 			errorHandler: function (err) {
 				console.log(err.messageFormatted);
 				this.emit('end');
 			}
 		}))
-		.pipe($.sourcemaps.init())
 		.pipe($.sass({ outputStyle: 'compressed' }))
 		.pipe($.autoprefixer({ remove: false }))
 		.pipe($.rename({ extname: '.min.css' }))
-		.pipe($.sourcemaps.write('.'))
-		.pipe(gulp.dest('dist'));
+		.pipe(gulp.dest('dist', { sourcemaps: '.' }));
 });
 
 gulp.task('css-raw', () => {
-	return gulp.src(['src/**/*.css', '!src/**/*.min.css'], { base: 'src' })
+	return gulp.src(['src/**/*.css', '!src/**/*.min.css'], { base: 'src', sourcemaps: true })
 		.pipe($.plumber())
-		.pipe($.sourcemaps.init())
 		.pipe($.cleanCss())
 		.pipe($.rename({ extname: '.min.css' }))
-		.pipe($.sourcemaps.write('.'))
-		.pipe(gulp.dest('dist'));
+		.pipe(gulp.dest('dist', { sourcemaps: '.' }));
 });
 
 gulp.task('css-min', () => {
