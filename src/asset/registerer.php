@@ -1,13 +1,13 @@
 <?php
-namespace st;
-use \st\retrop as R;
+namespace wplug\retrop;
+use \wplug\retrop as R;
 
 /**
  *
  * Retrop Registerer
  *
- * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2020-12-11
+ * @author Takuto Yanagida
+ * @version 2021-07-08
  *
  */
 
@@ -165,7 +165,7 @@ class Registerer {
 	public function process_item( $item, $file_name, $is_term_inserted = false ) {
 		if ( ! $this->is_required_field_filled( $item ) ) return false;
 		$digested_text = $this->get_digested_text( $item );
-		$digest = \st\retrop\make_digest( $digested_text );
+		$digest = \wplug\retrop\make_digest( $digested_text );
 
 		$olds = get_posts( [
 			'post_type' => $this->_post_type,
@@ -245,7 +245,7 @@ class Registerer {
 				break;
 			case R\FS_FILTER_NORM_DATE:
 				$val = str_replace( '\n', PHP_EOL, $val );  // '\n' is '\' + 'n', but not \n.
-				$val = \st\field\normalize_date( $val );
+				$val = \wplug\field\normalize_date( $val );
 				break;
 			case R\FS_FILTER_NL2BR:
 				// Do not add "\n" because WP recognizes "\n" as a paragraph separator.

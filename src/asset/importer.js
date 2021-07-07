@@ -2,8 +2,8 @@
  *
  * Retrop: XLSX Importer (js)
  *
- * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2020-03-28
+ * @author Takuto Yanagida
+ * @version 2021-07-08
  *
  */
 

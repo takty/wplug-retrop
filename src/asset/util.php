@@ -1,12 +1,12 @@
 <?php
-namespace st\retrop;
+namespace wplug\retrop;
 
 /**
  *
  * Utilities for Retrop
  *
- * @author Takuto Yanagida @ Space-Time Inc.
- * @version 2020-03-28
+ * @author Takuto Yanagida
+ * @version 2021-07-08
  *
  */
 
