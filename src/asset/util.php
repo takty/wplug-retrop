@@ -63,3 +63,66 @@ function normalize_key_text( $text ) {
 	$text = trim( $text );
 	return $text;
 }
+
+function normalize_date( $str ) {
+	$str = mb_convert_kana( $str, 'n', 'utf-8' );
+	$nums = preg_split( '/\D/', $str );
+	$vals = [];
+	foreach ( $nums as $num ) {
+		$v = (int) trim( $num );
+		if ( $v !== 0 ) $vals[] = $v;
+	}
+	if ( 3 <= count( $vals ) ) {
+		$str = sprintf( '%04d-%02d-%02d', $vals[0], $vals[1], $vals[2] );
+	} else if ( count( $vals ) === 2 ) {
+		$str = sprintf( '%04d-%02d', $vals[0], $vals[1] );
+	} else if ( count( $vals ) === 1 ) {
+		$str = sprintf( '%04d', $vals[0] );
+	}
+	return $str;
+}
+
+
+// -----------------------------------------------------------------------------
+
+
+function get_file_uri( $path ) {
+	$path = wp_normalize_path( $path );
+
+	if ( is_child_theme() ) {
+		$theme_path = wp_normalize_path( defined( 'CHILD_THEME_PATH' ) ? CHILD_THEME_PATH : get_stylesheet_directory() );
+		$theme_uri  = get_stylesheet_directory_uri();
+
+		// When child theme is used, and libraries exist in the parent theme
+		$tlen = strlen( $theme_path );
+		$len  = strlen( $path );
+		if ( $tlen >= $len || 0 !== strncmp( $theme_path . $path[ $tlen ], $path, $tlen + 1 ) ) {
+			$theme_path = wp_normalize_path( defined( 'THEME_PATH' ) ? THEME_PATH : get_template_directory() );
+			$theme_uri  = get_template_directory_uri();
+		}
+		return str_replace( $theme_path, $theme_uri, $path );
+	} else {
+		$theme_path = wp_normalize_path( defined( 'THEME_PATH' ) ? THEME_PATH : get_stylesheet_directory() );
+		$theme_uri  = get_stylesheet_directory_uri();
+		return str_replace( $theme_path, $theme_uri, $path );
+	}
+}
+
+function abs_url( $base, $rel ) {
+	if ( parse_url( $rel, PHP_URL_SCHEME ) != '' ) return $rel;
+	$base = trailingslashit( $base );
+	if ( $rel[0] === '#' || $rel[0] === '?' ) return $base . $rel;
+
+	$pu = parse_url( $base );
+	$scheme = isset( $pu['scheme'] ) ? $pu['scheme'] . '://' : '';
+	$host   = isset( $pu['host'] )   ? $pu['host']           : '';
+	$port   = isset( $pu['port'] )   ? ':' . $pu['port']     : '';
+	$path   = isset( $pu['path'] )   ? $pu['path']           : '';
+
+	$path = preg_replace( '#/[^/]*$#', '', $path );
+	if ( $rel[0] === '/' ) $path = '';
+	$abs = "$host$port$path/$rel";
+	$re = [ '#(/\.?/)#', '#/(?!\.\.)[^/]+/\.\./#' ];
+	for ( $n = 1; $n > 0; $abs = preg_replace( $re, '/', $abs, -1, $n ) ) {}
+	return $scheme . $abs;
+}

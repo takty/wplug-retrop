@@ -1,7 +1,5 @@
 <?php
 namespace wplug\retrop;
-use \wplug\retrop as R;
-
 /**
  *
  * Retrop Registerer
@@ -14,7 +12,6 @@ use \wplug\retrop as R;
 
 require_once __DIR__ . '/util.php';
 require_once __DIR__ . '/simple_html_dom.php';
-require_once __DIR__ . '/field.php';
 
 
 class Registerer {
@@ -166,7 +163,7 @@ class Registerer {
 	public function process_item( $item, $file_name, $is_term_inserted = false ) {
 		if ( ! $this->is_required_field_filled( $item ) ) return false;
 		$digested_text = $this->get_digested_text( $item );
-		$digest = \wplug\retrop\make_digest( $digested_text );
+		$digest = make_digest( $digested_text );
 
 		$olds = get_posts( [
 			'post_type' => $this->_post_type,
@@ -246,7 +243,7 @@ class Registerer {
 				break;
 			case R\FS_FILTER_NORM_DATE:
 				$val = str_replace( '\n', PHP_EOL, $val );  // '\n' is '\' + 'n', but not \n.
-				$val = \wplug\retrop\normalize_date( $val );
+				$val = normalize_date( $val );
 				break;
 			case R\FS_FILTER_NL2BR:
 				// Do not add "\n" because WP recognizes "\n" as a paragraph separator.
