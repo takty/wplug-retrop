@@ -11,6 +11,7 @@ use \wplug\retrop as R;
  */
 
 
+require_once __DIR__ . '/asset/url.php';
 require_once __DIR__ . '/asset/simple_html_dom.php';
 
 
@@ -32,7 +33,7 @@ class Retrop_Exporter {
 		$this->_id        = 'retrop_export_' . $id;
 		$this->_post_type = $args['post_type'];
 		$this->_structs   = $this->_sort_structs( $args['structs'] );
-		$this->_url_to    = ( ! isset( $args['url_to'] ) || $args['url_to'] === false ) ? \wplug\get_file_uri( __DIR__ ) : $args['url_to'];
+		$this->_url_to    = ( ! isset( $args['url_to'] ) || $args['url_to'] === false ) ? \wplug\retrop\get_file_uri( __DIR__ ) : $args['url_to'];
 
 		$this->_labels = [
 			'name'        => 'Retrop Exporter',
@@ -74,8 +75,8 @@ class Retrop_Exporter {
 	}
 
 	public function _cb_output_page() {
-		wp_enqueue_script( 'xlsx', \wplug\abs_url( $this->_url_to, './asset/xlsx.full.min.js' ) );
-		wp_enqueue_script( 'retrop-exporter', \wplug\abs_url( $this->_url_to, './asset/exporter.min.js' ) );
+		wp_enqueue_script( 'xlsx', \wplug\retrop\abs_url( $this->_url_to, './asset/xlsx.full.min.js' ) );
+		wp_enqueue_script( 'retrop-exporter', \wplug\retrop\abs_url( $this->_url_to, './asset/exporter.min.js' ) );
 
 		$this->_header();
 

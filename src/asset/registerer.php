@@ -14,6 +14,7 @@ use \wplug\retrop as R;
 
 require_once __DIR__ . '/util.php';
 require_once __DIR__ . '/simple_html_dom.php';
+require_once __DIR__ . '/field.php';
 
 
 class Registerer {
@@ -245,7 +246,7 @@ class Registerer {
 				break;
 			case R\FS_FILTER_NORM_DATE:
 				$val = str_replace( '\n', PHP_EOL, $val );  // '\n' is '\' + 'n', but not \n.
-				$val = \wplug\field\normalize_date( $val );
+				$val = \wplug\retrop\normalize_date( $val );
 				break;
 			case R\FS_FILTER_NL2BR:
 				// Do not add "\n" because WP recognizes "\n" as a paragraph separator.
