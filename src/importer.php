@@ -108,8 +108,8 @@ class Retrop_Importer extends \WP_Importer {
 
 
 	public function dispatch() {
-		wp_enqueue_script( 'retrop-importer', abs_url( $this->_url_to, './asset/importer.min.js' ) );
-		wp_enqueue_script( 'xlsx', abs_url( $this->_url_to, './asset/xlsx.full.min.js' ) );
+		wp_enqueue_script( 'retrop-importer', abs_url( $this->_url_to, './asset/js/importer.min.js' ) );
+		wp_enqueue_script( 'xlsx', abs_url( $this->_url_to, './asset/js/xlsx.full.min.js' ) );
 
 		$this->_header();
 

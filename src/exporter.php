@@ -74,8 +74,8 @@ class Retrop_Exporter {
 	}
 
 	public function _cb_output_page() {
-		wp_enqueue_script( 'xlsx', abs_url( $this->_url_to, './asset/xlsx.full.min.js' ) );
-		wp_enqueue_script( 'retrop-exporter', abs_url( $this->_url_to, './asset/exporter.min.js' ) );
+		wp_enqueue_script( 'xlsx', abs_url( $this->_url_to, './asset/js/xlsx.full.min.js' ) );
+		wp_enqueue_script( 'retrop-exporter', abs_url( $this->_url_to, './asset/js/exporter.min.js' ) );
 
 		$this->_header();
 
