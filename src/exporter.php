@@ -1,18 +1,16 @@
 <?php
-namespace wplug\retrop;
 /**
- *
  * Retrop Exporter: Versatile XLSX Exporter
  *
+ * @package Wplug Retrop
  * @author Takuto Yanagida
  * @version 2021-07-08
- *
  */
 
+namespace wplug\retrop;
 
 require_once __DIR__ . '/asset/util.php';
 require_once __DIR__ . '/asset/simple_html_dom.php';
-
 
 class Retrop_Exporter {
 

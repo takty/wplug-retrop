@@ -1,15 +1,13 @@
 <?php
-namespace wplug\retrop;
-
 /**
- *
  * Utilities for Retrop
  *
+ * @package Wplug Retrop
  * @author Takuto Yanagida
  * @version 2021-07-08
- *
  */
 
+namespace wplug\retrop;
 
 const FS_FOR_DIGEST = 'for_digest';
 const FS_REQUIRED   = 'required';

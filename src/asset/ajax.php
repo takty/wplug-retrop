@@ -1,14 +1,13 @@
 <?php
-namespace wplug\retrop;
 /**
- *
  * Ajax
  *
+ * @package Wplug Retrop
  * @author Takuto Yanagida
  * @version 2021-07-08
- *
  */
 
+namespace wplug\retrop;
 
 class Ajax {
 

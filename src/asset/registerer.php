@@ -1,18 +1,16 @@
 <?php
-namespace wplug\retrop;
 /**
- *
  * Retrop Registerer
  *
+ * @package Wplug Retrop
  * @author Takuto Yanagida
  * @version 2021-07-08
- *
  */
 
+namespace wplug\retrop;
 
 require_once __DIR__ . '/util.php';
 require_once __DIR__ . '/simple_html_dom.php';
-
 
 class Registerer {
 

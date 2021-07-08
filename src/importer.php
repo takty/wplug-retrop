@@ -1,14 +1,13 @@
 <?php
-namespace wplug\retrop;
 /**
- *
  * Retrop Importer: Versatile XLSX Importer
  *
+ * @package Wplug Retrop
  * @author Takuto Yanagida
  * @version 2021-07-08
- *
  */
 
+namespace wplug\retrop;
 
 require_once ABSPATH . 'wp-admin/includes/import.php';
 if ( ! class_exists( '\WP_Importer' ) ) {
@@ -20,7 +19,6 @@ if ( ! class_exists( '\WP_Importer' ) ) return;
 require_once __DIR__ . '/asset/util.php';
 require_once __DIR__ . '/asset/registerer.php';
 require_once __DIR__ . '/asset/ajax.php';
-
 
 class Retrop_Importer extends \WP_Importer {
 
