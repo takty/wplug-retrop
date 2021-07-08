@@ -48,14 +48,14 @@ function makeJsTask(src, dest = './dist', base = null) {
 }
 
 function makeCssTask(src, dest = './dist', base = null) {
-	const sassTask = () => gulp.src(src, { base: base, sourcemaps: true })
+	const cssTask = () => gulp.src(src, { base: base, sourcemaps: true })
 		.pipe($.plumber())
 		.pipe($.autoprefixer({ remove: false }))
 		.pipe($.cleanCss())
 		.pipe($.rename({ extname: '.min.css' }))
 		.pipe($.changed(dest, { hasChanged: $.changed.compareContents }))
 		.pipe(gulp.dest(dest, { sourcemaps: '.' }));
-	return sassTask;
+	return cssTask;
 }
 
 function makeSassTask(src, dest = './dist', base = null) {
