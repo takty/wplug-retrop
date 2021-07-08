@@ -3,9 +3,12 @@
 		[
 			"@babel/preset-env",
 			{
-				"targets": {
-					"ie": 11
-				}
+				"targets": [
+					"> 1%",
+					"last 2 versions",
+					"not ie <= 11",
+					"not dead"
+				]
 			}
 		]
 	]
