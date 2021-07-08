@@ -48,7 +48,7 @@ class Retrop_Exporter {
 	private function _sort_structs( $structs ) {
 		$temp = [];
 		foreach ( $structs as $key => $s ) {
-			if ( $s['type'] === R\FS_TYPE_MEDIA ) {
+			if ( $s['type'] === FS_TYPE_MEDIA ) {
 				$temp[ $key ] = $s;
 				unset( $structs[ $key ] );
 			}
@@ -219,23 +219,23 @@ class Retrop_Exporter {
 		foreach ( $this->_structs as $key => $s ) {
 			$val = '';
 			switch ( $s['type'] ) {
-			case R\FS_TYPE_TITLE:
+			case FS_TYPE_TITLE:
 				$val = $p->post_title;
 				break;
-			case R\FS_TYPE_CONTENT:
+			case FS_TYPE_CONTENT:
 				$val = $p->post_content;
-				if ( isset( $s[R\FS_FILTER] ) && $s[R\FS_FILTER] === R\FS_FILTER_CONTENT_MEDIA ) {
+				if ( isset( $s[ FS_FILTER ] ) && $s[ FS_FILTER ] === FS_FILTER_CONTENT_MEDIA ) {
 					$this->_extract_media( $val, $id2urls );
 				}
 				break;
-			case R\FS_TYPE_MEDIA:
+			case FS_TYPE_MEDIA:
 				$val = [];
 				foreach ( $id2urls as $id => $urlh ) $val[ $id ] = array_keys( $urlh );
 				break;
-			case R\FS_TYPE_META:
-				$mkey = $s[R\FS_KEY];
+			case FS_TYPE_META:
+				$mkey = $s[ FS_KEY ];
 				$val = get_post_meta( $p->ID, $mkey, true );
-				if ( isset( $s[R\FS_FILTER] ) && $s[R\FS_FILTER] === R\FS_FILTER_MEDIA_URL ) {
+				if ( isset( $s[ FS_FILTER ] ) && $s[ FS_FILTER ] === FS_FILTER_MEDIA_URL ) {
 					$orig_id = intval( $val );
 					$ais = wp_get_attachment_image_src( $orig_id, 'full' );
 					if ( $ais !== false ) {
@@ -243,24 +243,24 @@ class Retrop_Exporter {
 						$val[ $orig_id ] = [ $ais[0] ];
 					}
 				}
-				if ( isset( $s[R\FS_FILTER] ) && $s[R\FS_FILTER] === R\FS_FILTER_CONTENT_MEDIA ) {
+				if ( isset( $s[ FS_FILTER ] ) && $s[ FS_FILTER ] === FS_FILTER_CONTENT_MEDIA ) {
 					$this->_extract_media( $val, $id2urls );
 				}
 				break;
-			case R\FS_TYPE_DATE:
+			case FS_TYPE_DATE:
 				$val = $p->post_date;
 				break;
-			case R\FS_TYPE_DATE_GMT:
+			case FS_TYPE_DATE_GMT:
 				$val = $p->post_date_gmt;
 				break;
-			case R\FS_TYPE_SLUG:
+			case FS_TYPE_SLUG:
 				$val = $p->post_name;
 				break;
-			case R\FS_TYPE_MENU_ORDER:
+			case FS_TYPE_MENU_ORDER:
 				$val = $p->menu_order;
 				break;
-			case R\FS_TYPE_TERM:
-				$tax = $s[R\FS_TAXONOMY];
+			case FS_TYPE_TERM:
+				$tax = $s[ FS_TAXONOMY ];
 				$ts = get_the_terms( $p->ID, $tax );
 				if ( is_array( $ts ) ) {
 					$slugs = [];
@@ -268,7 +268,7 @@ class Retrop_Exporter {
 					$val = implode( ', ', $slugs );
 				}
 				break;
-			case R\FS_TYPE_THUMBNAIL_URL:
+			case FS_TYPE_THUMBNAIL_URL:
 				if ( ! has_post_thumbnail( $p->ID ) ) break;
 				$id = get_post_thumbnail_id( $p->ID );
 				$ais = wp_get_attachment_image_src( $id, 'full' );
@@ -277,12 +277,12 @@ class Retrop_Exporter {
 					$val[ $id ] = [ $ais[0] ];
 				}
 				break;
-			case R\FS_TYPE_ACF_PM:
+			case FS_TYPE_ACF_PM:
 				if ( function_exists( 'get_field' ) ) {
-					$mkey = $s[R\FS_KEY];
+					$mkey = $s[ FS_KEY ];
 					$val = get_field( $mkey, $p->ID, false );
 					if ( ! $val ) $val = '';
-					if ( ! empty( $val ) && isset( $s[R\FS_FILTER] ) && $s[R\FS_FILTER] === R\FS_FILTER_CONTENT_MEDIA ) {
+					if ( ! empty( $val ) && isset( $s[ FS_FILTER ] ) && $s[ FS_FILTER ] === FS_FILTER_CONTENT_MEDIA ) {
 						$this->_extract_media( $val, $id2urls );
 					}
 				}

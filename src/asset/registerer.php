@@ -31,13 +31,13 @@ class Registerer {
 	public function __construct( $post_type, $structs, $labels = [], $post_filter = null ) {
 		$this->_post_type       = $post_type;
 		$this->_type2structs    = $this->extract_type_struct( $structs );
-		$this->_required_cols   = $this->extract_columns( $structs, R\FS_REQUIRED );
-		$this->_digest_cols     = $this->extract_columns( $structs, R\FS_FOR_DIGEST );
+		$this->_required_cols   = $this->extract_columns( $structs, FS_REQUIRED );
+		$this->_digest_cols     = $this->extract_columns( $structs, FS_FOR_DIGEST );
 		$this->_labels          = $labels;
 		$this->_post_filter     = $post_filter;
 
-		if ( isset( $this->_type2structs[ R\FS_TYPE_MEDIA ] ) ) {
-			$keys = array_keys( $this->_type2structs[ R\FS_TYPE_MEDIA ] );
+		if ( isset( $this->_type2structs[ FS_TYPE_MEDIA ] ) ) {
+			$keys = array_keys( $this->_type2structs[ FS_TYPE_MEDIA ] );
 			if ( count( $keys ) ) $this->_media_col = $keys[0];
 		}
 		$this->_media_orig_to_cur = get_option( "retrop_registerer_media_$post_type", [] );
@@ -50,11 +50,11 @@ class Registerer {
 
 	private function extract_type_struct( $structs ) {
 		$t2ss = [];
-		foreach ( R\FS_TYPES as $t ) $t2ss[ $t ] = [];
+		foreach ( FS_TYPES as $t ) $t2ss[ $t ] = [];
 
 		foreach ( $structs as $col => $s ) {
-			if ( ! isset( $s[ R\FS_TYPE ] ) ) continue;
-			$type = $s[ R\FS_TYPE ];
+			if ( ! isset( $s[ FS_TYPE ] ) ) continue;
+			$type = $s[ FS_TYPE ];
 			$t2ss[ $type ][ $col ] = $s;
 		}
 		return $t2ss;
@@ -232,25 +232,25 @@ class Registerer {
 	private function filter( $item, $val, $filter, $post_id = false, &$msg ) {
 		if ( $filter ) {
 			switch ( $filter ) {
-			case R\FS_FILTER_CONTENT:
+			case FS_FILTER_CONTENT:
 				$val = str_replace( '\n', PHP_EOL, $val );  // '\n' is '\' + 'n', but not \n.
 				$val = wp_kses_post( $val );
 				break;
-			case R\FS_FILTER_CONTENT_MEDIA:
+			case FS_FILTER_CONTENT_MEDIA:
 				$val = str_replace( '\n', PHP_EOL, $val );  // '\n' is '\' + 'n', but not \n.
 				$val = wp_kses_post( $val );
 				$val = $this->_filter_content_media( $val, $item, $post_id, $msg );
 				break;
-			case R\FS_FILTER_NORM_DATE:
+			case FS_FILTER_NORM_DATE:
 				$val = str_replace( '\n', PHP_EOL, $val );  // '\n' is '\' + 'n', but not \n.
 				$val = normalize_date( $val );
 				break;
-			case R\FS_FILTER_NL2BR:
+			case FS_FILTER_NL2BR:
 				// Do not add "\n" because WP recognizes "\n" as a paragraph separator.
 				$val = str_replace( ['\n\n', '\n\n'], '\n&nbsp;\n', $val );
 				$val = str_replace( '\n', '<br />', $val );
 				break;
-			case R\FS_FILTER_MEDIA_URL:
+			case FS_FILTER_MEDIA_URL:
 				$id_urls = json_decode( $val, true );
 				$id = array_keys( $id_urls )[0];
 				$val = $this->convert_media_id( $id, $id_urls[ $id ], $post_id, $msg );
@@ -273,7 +273,7 @@ class Registerer {
 
 	private function get_post_title( $item ) {
 		$title = '';
-		foreach ( $this->_type2structs[ R\FS_TYPE_TITLE ] as $col => $s ) {
+		foreach ( $this->_type2structs[ FS_TYPE_TITLE ] as $col => $s ) {
 			$col = $this->split_column_name( $col );
 			if ( ! isset( $item[ $col ] ) ) continue;
 			$title .= $item[ $col ];
@@ -287,13 +287,13 @@ class Registerer {
 
 	private function get_post_content( $item, $post_id, &$msg ) {
 		$content = '';
-		foreach ( $this->_type2structs[ R\FS_TYPE_CONTENT ] as $col => $s ) {
+		foreach ( $this->_type2structs[ FS_TYPE_CONTENT ] as $col => $s ) {
 			$col = $this->split_column_name( $col );
 			if ( ! isset( $item[ $col ] ) ) continue;
 			$val = trim( $item[ $col ] );
 			if ( empty( $val ) ) continue;
 
-			$filter = isset( $s[ R\FS_FILTER ] ) ? $s[ R\FS_FILTER ] : false;
+			$filter = isset( $s[ FS_FILTER ] ) ? $s[ FS_FILTER ] : false;
 			$content .= $this->filter( $item, $val, $filter, $post_id, $msg );
 		}
 		return $content;
@@ -304,15 +304,15 @@ class Registerer {
 
 
 	private function update_post_metas( $item, $post_id, &$msg ) {
-		foreach ( $this->_type2structs[ R\FS_TYPE_META ] as $col => $s ) {
+		foreach ( $this->_type2structs[ FS_TYPE_META ] as $col => $s ) {
 			$col = $this->split_column_name( $col );
 			if ( ! isset( $item[ $col ] ) ) continue;
 			$val = trim( $item[ $col ] );
 			if ( empty( $val ) ) continue;
 
-			if ( ! isset( $s[ R\FS_KEY ] ) ) continue;
-			$key = $s[ R\FS_KEY ];
-			$filter = isset( $s[ R\FS_FILTER ] ) ? $s[ R\FS_FILTER ] : false;
+			if ( ! isset( $s[ FS_KEY ] ) ) continue;
+			$key = $s[ FS_KEY ];
+			$filter = isset( $s[ FS_FILTER ] ) ? $s[ FS_FILTER ] : false;
 			update_post_meta( $post_id, $key, $this->filter( $item, $val, $filter, $post_id, $msg ) );
 		}
 		return true;
@@ -324,7 +324,7 @@ class Registerer {
 
 	private function get_post_date( $item ) {
 		$date = '';
-		foreach ( $this->_type2structs[ R\FS_TYPE_DATE ] as $col => $s ) {
+		foreach ( $this->_type2structs[ FS_TYPE_DATE ] as $col => $s ) {
 			$col = $this->split_column_name( $col );
 			if ( ! isset( $item[ $col ] ) ) continue;
 			$date .= $item[ $col ];
@@ -334,7 +334,7 @@ class Registerer {
 
 	private function get_post_date_gmt( $item ) {
 		$date = '';
-		foreach ( $this->_type2structs[ R\FS_TYPE_DATE_GMT ] as $col => $s ) {
+		foreach ( $this->_type2structs[ FS_TYPE_DATE_GMT ] as $col => $s ) {
 			$col = $this->split_column_name( $col );
 			if ( ! isset( $item[ $col ] ) ) continue;
 			$date .= $item[ $col ];
@@ -343,11 +343,11 @@ class Registerer {
 	}
 
 	private function get_post_name( $item ) {
-		foreach ( $this->_type2structs[ R\FS_TYPE_SLUG ] as $col => $s ) {
+		foreach ( $this->_type2structs[ FS_TYPE_SLUG ] as $col => $s ) {
 			$col = $this->split_column_name( $col );
 			if ( ! isset( $item[ $col ] ) ) continue;
 			$val = $item[ $col ];
-			if ( isset( $s[ R\FS_FILTER ] ) && $s[ R\FS_FILTER ] === R\FS_FILTER_SLUG ) {
+			if ( isset( $s[ FS_FILTER ] ) && $s[ FS_FILTER ] === FS_FILTER_SLUG ) {
 				$val = strtolower( $val );
 				$val = preg_replace( '/[^A-Za-z0-9]/', '-', $val );
 				$val = preg_replace( '/--+/', '-', $val );
@@ -359,7 +359,7 @@ class Registerer {
 
 	private function get_menu_order( $item ) {
 		$mo = 0;
-		foreach ( $this->_type2structs[ R\FS_TYPE_MENU_ORDER ] as $col => $s ) {
+		foreach ( $this->_type2structs[ FS_TYPE_MENU_ORDER ] as $col => $s ) {
 			$col = $this->split_column_name( $col );
 			if ( ! isset( $item[ $col ] ) ) continue;
 			$mo = intval( $item[ $col ] );
@@ -372,18 +372,18 @@ class Registerer {
 
 
 	private function add_terms( $item, $post_id, $is_term_inserted ) {
-		foreach ( $this->_type2structs[ R\FS_TYPE_TERM ] as $col => $s ) {
+		foreach ( $this->_type2structs[ FS_TYPE_TERM ] as $col => $s ) {
 			$col = $this->split_column_name( $col );
 			if ( ! isset( $item[ $col ] ) ) continue;
 
-			if ( ! isset( $s[ R\FS_TAXONOMY ] ) ) continue;
-			$tax = $s[ R\FS_TAXONOMY ];
+			if ( ! isset( $s[ FS_TAXONOMY ] ) ) continue;
+			$tax = $s[ FS_TAXONOMY ];
 
 			$vals = $item[ $col ];
 			if ( ! is_array( $vals ) ) $vals = [ $vals ];
 
-			if ( isset( $s[ R\FS_CONV ] ) ) $vals = $this->apply_conv_table( $vals, $s[ R\FS_CONV ] );
-			if ( isset( $s[ R\FS_NORM_SLUG ] ) && $s[ R\FS_NORM_SLUG ] === true ) {
+			if ( isset( $s[ FS_CONV ] ) ) $vals = $this->apply_conv_table( $vals, $s[ FS_CONV ] );
+			if ( isset( $s[ FS_NORM_SLUG ] ) && $s[ FS_NORM_SLUG ] === true ) {
 				$vals = $this->normalize_slugs( $vals );
 			}
 			$this->add_term( $post_id, $vals, $tax, $is_term_inserted );
@@ -445,7 +445,7 @@ class Registerer {
 
 	private function update_post_thumbnail( $item, $post_id ) {
 		$msg = '';
-		foreach ( $this->_type2structs[ R\FS_TYPE_THUMBNAIL_URL ] as $col => $s ) {
+		foreach ( $this->_type2structs[ FS_TYPE_THUMBNAIL_URL ] as $col => $s ) {
 			$col = $this->split_column_name( $col );
 			if ( ! isset( $item[ $col ] ) ) continue;
 
