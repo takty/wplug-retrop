@@ -3,45 +3,45 @@
  * Retrop: XLSX Importer (js)
  *
  * @author Takuto Yanagida
- * @version 2021-07-08
+ * @version 2021-09-02
  *
  */
 
 
 document.addEventListener('DOMContentLoaded', () => {
-	const lf = document.getElementById('retrop-load-files');
+	const lf = document.getElementById('wplug-retrop-load-files');
 	if (lf) {
-		const jsonStructs = document.getElementById('retrop-structs').value;
-		const url = document.getElementById('retrop-url').value;
-		RETROP.loadFiles(jsonStructs, [url], 'retrop-item-', (successAll) => {
+		const jsonStructs = document.getElementById('wplug-retrop-structs').value;
+		const url = document.getElementById('wplug-retrop-url').value;
+		RETROP.loadFiles(jsonStructs, [url], 'wplug-retrop-item-', (successAll) => {
 			if (successAll) {
-				const btn = document.getElementsByName('retrop-submit-ajax')[0];
+				const btn = document.getElementsByName('wplug-retrop-submit-ajax')[0];
 				btn.disabled = false;
 			}
-			else document.getElementById('retrop-failure').style.display = 'block';
+			else document.getElementById('wplug-retrop-failure').style.display = 'block';
 		});
 	}
-	const ar = document.getElementById('retrop-ajax-request-url');
+	const ar = document.getElementById('wplug-retrop-ajax-request-url');
 	if (ar) {
-		const btn = document.getElementsByName('retrop-submit-ajax')[0];
+		const btn = document.getElementsByName('wplug-retrop-submit-ajax')[0];
 		btn.addEventListener('click', () => {
 			btn.classList.add('disabled');
 
 			const msgArea = document.getElementById('response-msgs');
 			const resPb = document.getElementById('response-pb');
 			const resPbInner = resPb.children[0];
-			const count = document.getElementsByClassName('retrop-item').length;
+			const count = document.getElementsByClassName('wplug-retrop-item').length;
 
-			RETROP.ajaxSendItems(ar.value, 'retrop-item-', (msg, idx) => {
+			RETROP.ajaxSendItems(ar.value, 'wplug-retrop-item-', (msg, idx) => {
 				msgArea.innerHTML += msg.msg;
 				msgArea.scrollTop = msgArea.scrollHeight;
 				const p = parseInt(100 * (idx + 1) / count);
 				resPbInner.style.width = p + '%';
 			}, (success) => {
 				if (success) {
-					document.getElementById('retrop-success').style.display = 'block';
+					document.getElementById('wplug-retrop-success').style.display = 'block';
 				} else {
-					document.getElementById('retrop-failure').style.display = 'block';
+					document.getElementById('wplug-retrop-failure').style.display = 'block';
 				}
 			});
 		});
@@ -108,10 +108,10 @@ RETROP['loadFiles'] = (function () {
 		}
 
 		function finished(successAll) {
-			const fileName = document.getElementById('retrop-file-name').value;
-			const addTerm  = document.getElementById('retrop-add-term');
+			const fileName = document.getElementById('wplug-retrop-file-name').value;
+			const addTerm  = document.getElementById('wplug-retrop-add-term');
 			const isTermAdded = addTerm ? (addTerm.value === 1) : false;
-			const target   = document.getElementById('retrop-url');
+			const target   = document.getElementById('wplug-retrop-url');
 
 			for (let i = 0; i < items.length; i += 1) {
 				const id = resIdBase + i;
@@ -119,7 +119,7 @@ RETROP['loadFiles'] = (function () {
 				input.id = id;
 				input.type = 'hidden';
 				input.value = JSON.stringify({ file_name: fileName, index: i, item: items[i], add_term: isTermAdded });
-				input.classList.add('retrop-item');
+				input.classList.add('wplug-retrop-item');
 				target.parentElement.appendChild(input);
 			}
 
@@ -269,7 +269,7 @@ RETROP['ajaxSendItems'] = (function () {
 	}
 
 	function notifyFinished() {
-		const fileId = document.getElementById('retrop-file-id');
+		const fileId = document.getElementById('wplug-retrop-file-id');
 
 		const req = new XMLHttpRequest();
 		req.open('POST', _ajaxUrl);

@@ -3,7 +3,7 @@
  * Retrop: XLSX Saver (js)
  *
  * @author Takuto Yanagida
- * @version 2021-07-08
+ * @version 2021-09-02
  *
  */
 
@@ -12,13 +12,13 @@ document.addEventListener('DOMContentLoaded', () => {
 	const btn = document.getElementById('download');
 	if (!btn) return;
 
-	const st = document.getElementById('retrop-structs').value;
-	const fn = document.getElementById('retrop-filename').value;
+	const st = document.getElementById('wplug-retrop-structs').value;
+	const fn = document.getElementById('wplug-retrop-filename').value;
 
 	btn.addEventListener('click', () => {
 		btn.classList.add('disabled');
-		RETROP.saveFile(st, fn, '#retrop-chunk-', (success) => {
-			document.getElementById('retrop-' + (success ? 'success' : 'failure')).style.display = 'block';
+		RETROP.saveFile(st, fn, '#wplug-retrop-chunk-', (success) => {
+			document.getElementById('wplug-retrop-' + (success ? 'success' : 'failure')).style.display = 'block';
 		});
 	});
 });
