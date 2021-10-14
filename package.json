@@ -1,6 +1,6 @@
 {
 	"name": "wplug-retrop",
-	"version": "1.21.7",
+	"version": "1.0.0",
 	"description": "A Component of WordPress for Exporting and Importing Post Data",
 	"author": "Takuto Yanagida",
 	"main": "gulpfile.js",
