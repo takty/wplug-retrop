@@ -3,14 +3,14 @@
  * Function for gulp (Copy)
  *
  * @author Takuto Yanagida
- * @version 2021-09-02
+ * @version 2022-03-23
  *
  */
 
 'use strict';
 
 const gulp = require('gulp');
-const $    = require('gulp-load-plugins')({ pattern: ['gulp-*'] });
+const $    = require('gulp-load-plugins')({ pattern: ['gulp-plumber', 'gulp-ignore', 'gulp-changed'] });
 
 function makeCopyTask(src, dest = './dist', base = null) {
 	const copyTask = () => gulp.src(src, { base: base })

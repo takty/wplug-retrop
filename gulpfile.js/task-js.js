@@ -3,14 +3,14 @@
  * Function for gulp (JS)
  *
  * @author Takuto Yanagida
- * @version 2021-09-02
+ * @version 2022-03-23
  *
  */
 
 'use strict';
 
 const gulp = require('gulp');
-const $    = require('gulp-load-plugins')({ pattern: ['gulp-*'] });
+const $    = require('gulp-load-plugins')({ pattern: ['gulp-plumber', 'gulp-preprocess', 'gulp-babel', 'gulp-terser', 'gulp-rename', 'gulp-changed'] });
 
 function makeJsTask(src, dest = './dist', base = null) {
 	const jsTask = () => gulp.src(src, { base: base, sourcemaps: true })
