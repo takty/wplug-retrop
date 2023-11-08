@@ -84,32 +84,6 @@ function normalize_key_text( string $text ): string {
 	return $text;
 }
 
-/**
- * Normalizes date string.
- *
- * @param string $str A string.
- * @return string Normalized string.
- */
-function normalize_date( string $str ): string {
-	$str  = mb_convert_kana( $str, 'n', 'utf-8' );
-	$nums = preg_split( '/\D/', $str );
-	$vals = array();
-	foreach ( $nums as $num ) {
-		$v = (int) trim( $num );
-		if ( 0 !== $v && is_numeric( $v ) ) {
-			$vals[] = $v;
-		}
-	}
-	if ( 3 <= count( $vals ) ) {
-		$str = sprintf( '%04d-%02d-%02d', $vals[0], $vals[1], $vals[2] );
-	} elseif ( count( $vals ) === 2 ) {
-		$str = sprintf( '%04d-%02d', $vals[0], $vals[1] );
-	} elseif ( count( $vals ) === 1 ) {
-		$str = sprintf( '%04d', $vals[0] );
-	}
-	return $str;
-}
-
 
 // -----------------------------------------------------------------------------
 

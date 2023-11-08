@@ -96,7 +96,7 @@ class Retrop_Exporter {
 		$this->id        = 'retrop_export_' . $id;
 		$this->post_type = $args['post_type'];
 		$this->structs   = $this->sort_structs( $args['structs'] );
-		$this->url_to    = ( ! isset( $args['url_to'] ) || false === $args['url_to'] ) ? get_file_uri( __DIR__ ) : $args['url_to'];
+		$this->url_to    = ( ! isset( $args['url_to'] ) || false === $args['url_to'] ) ? \wplug\get_file_uri( __DIR__ ) : $args['url_to'];
 
 		$this->labels = array(
 			'name'        => 'Retrop Exporter',
@@ -137,7 +137,7 @@ class Retrop_Exporter {
 	 */
 	public function cb_admin_menu() {
 		$label = $this->labels['name'];
-		add_submenu_page( 'tools.php', $label, $label, 'level_7', $this->id, array( $this, 'cb_output_page' ) );
+		add_submenu_page( 'tools.php', $label, $label, 'export', $this->id, array( $this, 'cb_output_page' ) );
 	}
 
 	/**
@@ -165,8 +165,8 @@ class Retrop_Exporter {
 	 * @access private
 	 */
 	public function cb_output_page() {
-		wp_enqueue_script( 'xlsx', abs_url( $this->url_to, './assets/js/xlsx.full.min.js' ), array(), '1.0', false );
-		wp_enqueue_script( 'wplug-retrop-exporter', abs_url( $this->url_to, './assets/js/exporter.min.js' ), array(), '1.0', false );
+		wp_enqueue_script( 'xlsx', \wplug\abs_url( $this->url_to, './assets/js/xlsx.full.min.js' ), array(), '1.0', false );
+		wp_enqueue_script( 'wplug-retrop-exporter', \wplug\abs_url( $this->url_to, './assets/js/exporter.min.js' ), array(), '1.0', false );
 
 		$this->header();
 
@@ -441,5 +441,4 @@ class Retrop_Exporter {
 		}
 		return $ret;
 	}
-
 }

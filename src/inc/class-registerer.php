@@ -4,12 +4,13 @@
  *
  * @package Wplug Retrop
  * @author Takuto Yanagida
- * @version 2021-09-02
+ * @version 2023-09-08
  */
 
 namespace wplug\retrop;
 
 require_once __DIR__ . '/../assets/util.php';
+require_once __DIR__ . '/../assets/date-field.php';
 require_once __DIR__ . '/../assets/simple_html_dom.php';
 require_once __DIR__ . '/media.php';
 
@@ -402,7 +403,7 @@ class Registerer {
 					break;
 				case FS_FILTER_NORM_DATE:
 					$val = str_replace( '\n', PHP_EOL, $val );  // '\n' is '\' + 'n', but not \n.
-					$val = normalize_date( $val );
+					$val = \wplug\normalize_date( $val );
 					break;
 				case FS_FILTER_NL2BR:
 					// Do not add "\n" because WP recognizes "\n" as a paragraph separator.

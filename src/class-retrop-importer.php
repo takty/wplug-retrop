@@ -131,7 +131,7 @@ class Retrop_Importer extends \WP_Importer {
 	private function __construct( string $id, array $args ) {
 		$this->id           = 'retrop_import_' . $id;
 		$this->json_structs = wp_json_encode( $args['structs'] );
-		$this->url_to       = ( ! isset( $args['url_to'] ) || false === $args['url_to'] ) ? get_file_uri( __DIR__ ) : $args['url_to'];
+		$this->url_to       = ( ! isset( $args['url_to'] ) || false === $args['url_to'] ) ? \wplug\get_file_uri( __DIR__ ) : $args['url_to'];
 		if ( isset( $args['post_filter'] ) ) {
 			$this->post_filter = $args['post_filter'];
 		}
@@ -221,8 +221,8 @@ class Retrop_Importer extends \WP_Importer {
 	 * Dispatches the request.
 	 */
 	public function dispatch() {
-		wp_enqueue_script( 'wplug-retrop-importer', abs_url( $this->url_to, './assets/js/importer.min.js' ), array(), '1.0', false );
-		wp_enqueue_script( 'xlsx', abs_url( $this->url_to, './assets/js/xlsx.full.min.js' ), array(), '1.0', false );
+		wp_enqueue_script( 'wplug-retrop-importer', \wplug\abs_url( $this->url_to, './assets/js/importer.min.js' ), array(), '1.0', false );
+		wp_enqueue_script( 'xlsx', \wplug\abs_url( $this->url_to, './assets/js/xlsx.full.min.js' ), array(), '1.0', false );
 
 		$this->header();
 
@@ -341,5 +341,4 @@ class Retrop_Importer extends \WP_Importer {
 		<p id="wplug-retrop-success" style="display: none;"><strong><?php echo wp_kses_data( $this->labels['success'] ); ?></strong></p>
 		<?php
 	}
-
 }
