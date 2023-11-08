@@ -4,7 +4,7 @@
  *
  * @package Wplug Retrop
  * @author Takuto Yanagida
- * @version 2021-09-02
+ * @version 2023-11-08
  */
 
 namespace wplug\retrop;
@@ -40,10 +40,10 @@ class Ajax {
 	 *
 	 * @param string   $action   Ajax action.
 	 * @param callable $response Function called when receive message.
-	 * @param bool     $public   Whether this ajax is public.
+	 * @param bool     $pub      Whether this ajax is public.
 	 * @param ?string  $nonce    Nonce.
 	 */
-	public function __construct( string $action, $response, bool $public = false, ?string $nonce = null ) {
+	public function __construct( string $action, $response, bool $pub = false, ?string $nonce = null ) {
 		if ( ! preg_match( '/^[a-zA-Z0-9_\-]+$/', $action ) ) {
 			wp_die( 'Invalid string for ' . esc_html( $action ) . '.' );
 		}
@@ -52,7 +52,7 @@ class Ajax {
 		$this->nonce    = ( null === $nonce ) ? $action : $nonce;
 
 		add_action( "wp_ajax_$action", array( $this, 'cb_ajax_action' ) );
-		if ( $public ) {
+		if ( $pub ) {
 			add_action( "wp_ajax_nopriv_$action", array( $this, 'cb_ajax_action' ) );
 		}
 	}
@@ -89,5 +89,4 @@ class Ajax {
 			die;
 		}
 	}
-
 }
