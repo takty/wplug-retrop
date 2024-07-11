@@ -4,7 +4,7 @@
  *
  * @package Wplug Retrop
  * @author Takuto Yanagida
- * @version 2023-09-08
+ * @version 2024-07-11
  */
 
 namespace wplug\retrop;
@@ -79,6 +79,13 @@ class Registerer {
 	private $debug = '';
 
 	/**
+	 * Media IDs table.
+	 *
+	 * @var 1.0
+	 */
+	private $media_orig_to_cur;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param string   $post_type   Post type of imported posts.
@@ -100,7 +107,7 @@ class Registerer {
 				$this->media_col = $keys[0];
 			}
 		}
-		$this->_media_orig_to_cur = get_option( "retrop_registerer_media_$post_type", array() );
+		$this->media_orig_to_cur = get_option( "retrop_registerer_media_$post_type", array() );
 	}
 
 	/**
@@ -177,7 +184,7 @@ class Registerer {
 				if ( empty( $item[ $col ] ) ) {
 					return false;
 				}
-			} else {
+			} else {  // phpcs:ignore
 				if ( empty( trim( $item[ $col ] ) ) ) {
 					return false;
 				}
@@ -218,13 +225,13 @@ class Registerer {
 	 * @return int New media ID.
 	 */
 	private function get_media_id( int $orig_id ): int {
-		if ( ! isset( $this->_media_orig_to_cur[ $orig_id ] ) ) {
+		if ( ! isset( $this->media_orig_to_cur[ $orig_id ] ) ) {
 			return false;
 		}
-		$aid = $this->_media_orig_to_cur[ $orig_id ];
+		$aid = $this->media_orig_to_cur[ $orig_id ];
 		$p   = get_post( $aid );
 		if ( null === $p || 'attachment' !== $p->post_type ) {
-			unset( $this->_media_orig_to_cur[ $orig_id ] );
+			unset( $this->media_orig_to_cur[ $orig_id ] );
 			return false;
 		}
 		return $aid;
@@ -239,10 +246,10 @@ class Registerer {
 	 * @param int $id      New media ID.
 	 */
 	private function add_media_id( int $orig_id, int $id ) {
-		$this->_media_orig_to_cur[ $orig_id ] = $id;
+		$this->media_orig_to_cur[ $orig_id ] = $id;
 
 		$post_type = $this->post_type;
-		update_option( "retrop_registerer_media_$post_type", $this->_media_orig_to_cur );
+		update_option( "retrop_registerer_media_$post_type", $this->media_orig_to_cur );
 	}
 
 	/**
@@ -695,8 +702,8 @@ class Registerer {
 	 */
 	private function add_term( int $post_id, array $vals, string $tax, bool $add_new_term ) {
 		$ts = get_terms(
-			$tax,
 			array(
+				'taxonomy'   => $tax,
 				'hide_empty' => false,
 				'fields'     => 'id=>slug',
 			)
@@ -836,5 +843,4 @@ class Registerer {
 		unset( $dom );
 		return $val;
 	}
-
 }

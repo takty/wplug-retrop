@@ -4,7 +4,7 @@
  *
  * @package Wplug Retrop
  * @author Takuto Yanagida
- * @version 2021-09-02
+ * @version 2024-07-11
  */
 
 namespace wplug\retrop;
@@ -20,7 +20,7 @@ namespace wplug\retrop;
  * @param string $msg     Returned message.
  * @return int New media ID.
  */
-function _insert_attachment_from_url( string $url, int $post_id = 0, int $timeout, string &$msg ): int {
+function _insert_attachment_from_url( string $url, int $post_id, int $timeout, string &$msg ): int {
 	$temp = download_url( $url, $timeout );
 	if ( is_wp_error( $temp ) ) {
 		if ( $msg ) {
@@ -40,7 +40,7 @@ function _insert_attachment_from_url( string $url, int $post_id = 0, int $timeou
 			$msg .= '<p>Error: ' . esc_html( $attachment_id->get_error_message() ) . '</p>';
 		}
 		if ( is_file( $temp ) ) {
-			unlink( $temp );
+			unlink( $temp );  // phpcs:ignore
 		}
 		return false;
 	}
@@ -78,18 +78,18 @@ function _get_full_size_url( array $orig_urls ): string {
  *
  * @param int    $new_id    New media ID.
  * @param array  $orig_urls Original URLs.
- * @param string $class     CSS classes.
+ * @param string $cls       CSS classes.
  * @return string Converted URL.
  */
-function _convert_url( int $new_id, array $orig_urls, string $class ): string {
+function _convert_url( int $new_id, array $orig_urls, string $cls ): string {
 	if ( false === $new_id ) {
 		$url = _get_full_size_url( $orig_urls );
 		return array( false, $url );
 	}
-	if ( empty( $class ) ) {
+	if ( empty( $cls ) ) {
 		$url = wp_get_attachment_url( $new_id );
 	} else {
-		$cs   = explode( ' ', $class );
+		$cs   = explode( ' ', $cls );
 		$size = 'full';
 		foreach ( $cs as $c ) {
 			if ( strpos( $c, 'size-' ) === 0 ) {
